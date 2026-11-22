@@ -160,7 +160,7 @@ tbody tr:hover{background:var(--canvas)}
       <div class="grid">
         <div class="card">
           <h2>行业描述</h2><div class="sub">词库和搜索词都照这段话来配</div>
-          <textarea class="field" id="industry">我在广州白云区圣地大厦有很多商铺出租和写字楼出租，想找想开店的人</textarea>
+          <textarea class="field" id="industry">我在广州白云区圣地大厦有很多商铺出租，想找想开店的人</textarea>
           <div class="saved"><span class="ck">✓</span>已保存</div>
           <div class="row-end"><span class="sub">不想手动配词，点「智能保存」留底。</span><button class="btn blue" id="smartSave">＋ 智能保存</button></div>
           <div class="sec-head" style="margin:22px 0 0"><div><h2>平台选择</h2><div class="sub">至少选一个</div></div></div>
@@ -318,7 +318,7 @@ tbody tr:hover{background:var(--canvas)}
   $('#custBody').onclick=function(e){
     var tr=e.target.closest('tr[data-i]'); if(!tr)return;
     var c=visible[+tr.dataset.i];
-    var talk='你好，看到你在' + c.platform + '上留言「' + c.comment + '」。我们在广州白云区圣地大厦有商铺和写字楼出租，面积户型都有，方便的话发你一份铺位资料和租金表，你看看有没有合适的？';
+    var talk='你好，看到你在' + c.platform + '上留言「' + c.comment + '」。我们在广州白云区圣地大厦有商铺出租，面积户型都有，方便的话发你一份铺位资料和租金表，你看看有没有合适的？';
     $('#talkBox').innerHTML='<div class="talk"><div class="who">给 '+esc(c.name)+' · '+c.platform+' · '+tierTag(c.tier)+' 的话术</div>'+esc(talk)+'<div class="row-end"><span class="sub">按评论自动生成，可按需修改后发送</span><button class="btn blue" id="sendBtn">一键发送</button></div></div>';
     $('#talkBox').scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'});
     $('#sendBtn').onclick=function(){

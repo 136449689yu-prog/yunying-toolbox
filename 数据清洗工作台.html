@@ -198,7 +198,7 @@ pre.code{background:var(--canvas);color:var(--ink-2);border:1px solid var(--hair
       <ul class="findings" id="s1findings"></ul>
     </div>
   </div>
-  <div class="row right"><button class="btn" id="s1next" disabled onclick="go(2)">确认检查结果，进入方案 →</button></div>
+  <div class="row right"><button class="btn" id="s1next" onclick="go(2)">确认检查结果，进入方案 →</button></div>
 </section>
 
 <!-- 阶段2 -->
@@ -607,7 +607,6 @@ function resetAll(){
   S={headers:[],data:[],types:[],mainName:'',sheets:[],findings:[],rules:[],clean:null,report:null,stage:1,meta:{},cleanReady:false,planLocked:false};
   document.getElementById('file').value='';
   document.getElementById('s1result').classList.add('hide');
-  document.getElementById('s1next').disabled=true;
   go(1);
 }
 

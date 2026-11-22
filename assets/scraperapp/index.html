@@ -239,6 +239,29 @@
   function money(n){return '¥'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
   function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2200)}
 
+  /* 操作记录：数据驱动，支持滚动与逐条删除 */
+  var auditLog=[], auditSeq=0;
+  function renderAudit(){
+    var box=$('#audit-list');
+    if(!box)return;
+    box.innerHTML=auditLog.length?auditLog.map(function(a){
+      return '<div class="audit-item" data-id="'+a.id+'"><strong>'+esc(a.time)+'</strong><span>'+esc(a.text)+'</span>'+
+        '<button type="button" class="audit-del" title="删除这条记录">删除</button></div>';
+    }).join(''):'<div class="audit-empty">暂无操作记录</div>';
+  }
+  function addAudit(time,text){
+    auditLog.unshift({id:++auditSeq,time:time,text:text});
+    renderAudit();
+  }
+  document.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('.audit-del');
+    if(!b)return;
+    var item=b.closest('.audit-item'), id=Number(item&&item.dataset.id);
+    auditLog=auditLog.filter(function(a){return a.id!==id});
+    renderAudit();
+    toast('已删除 1 条操作记录');
+  });
+
   function go(id){
     $$('.side-nav a').forEach(function(a){a.classList.toggle('active',a.getAttribute('href')===id)});
     $$('.card.step').forEach(function(s){s.hidden=(s.id!==id.slice(1))});
@@ -307,11 +330,11 @@
       b.disabled=false;bt.disabled=false;b.textContent='重新抓取';
       render();
       $$('.bar-mini .fill').forEach(function(f){f.style.width=f.dataset.w+'%'});
-      $('#audit-list').innerHTML=
-        '<div class="audit-item"><strong>15:20:01</strong><span>读取任务配置：演示 · 欠费统计表，账单月 2026-11</span></div>'+
-        '<div class="audit-item"><strong>15:20:02</strong><span>抓取明细 '+D.rows+' 条，识别客户列与 4 个金额列</span></div>'+
-        '<div class="audit-item"><strong>15:20:03</strong><span>逐列对账完成，差额 0.00，校验通过</span></div>'+
-        '<div class="audit-item"><strong>15:20:04</strong><span>按客户合并为 '+D.customers.length+' 户，生成汇总表</span></div>';
+      var stamp=function(sec){return '15:20:0'+sec};
+      addAudit(stamp(1),'读取任务配置：演示 · 欠费统计表，账单月 2026-11');
+      addAudit(stamp(2),'抓取明细 '+D.rows+' 条，识别客户列与 4 个金额列');
+      addAudit(stamp(3),'逐列对账完成，差额 0.00，校验通过');
+      addAudit(stamp(4),'按客户合并为 '+D.customers.length+' 户，生成汇总表');
       go('#s2');
       toast('抓取完成 · 校验通过');
     },1200);

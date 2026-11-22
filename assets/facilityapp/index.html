@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>设施运维与合同履约工作台</title>
+<style>
+/* IBM Carbon-inspired maintenance console — flat, square, dense. */
+:root {
+  --primary: #0f62fe;
+  --primary-hover: #0050e6;
+  --primary-pressed: #002d9c;
+  --ink: #161616;
+  --ink-muted: #525252;
+  --ink-subtle: #8c8c8c;
+  --canvas: #ffffff;
+  --surface-1: #f4f4f4;
+  --surface-2: #e0e0e0;
+  --inverse-canvas: #161616;
+  --inverse-surface-1: #262626;
+  --inverse-ink: #ffffff;
+  --inverse-ink-muted: #c6c6c6;
+  --hairline: #e0e0e0;
+  --hairline-strong: #161616;
+  --success: #24a148;
+  --warning: #f1c21b;
+  --error: #da1e28;
+  --info: #0f62fe;
+}
+
+/* 主题：默认浅色（侧栏也浅色），切深色时恢复原深色侧栏 */
+:root {
+  --inverse-canvas: #ffffff;
+  --inverse-surface-1: #f0f0f2;
+  --inverse-ink: #161616;
+  --inverse-ink-muted: #525252;
+}
+html[data-theme="dark"] {
+  --inverse-canvas: #161616;
+  --inverse-surface-1: #262626;
+  --inverse-ink: #ffffff;
+  --inverse-ink-muted: #c6c6c6;
+}
+/* 待办天数文字色：浅底深琥珀、深底亮黄，两种主题都看得清 */
+.alert-days.tone-warn { color: #8a6100; }
+.alert-days.tone-red { color: #c41e26; }
+html[data-theme="dark"] .alert-days.tone-warn { color: #f1c21b; }
+html[data-theme="dark"] .alert-days.tone-red { color: #ff8a8a; }
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: .16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea { font-family: inherit; letter-spacing: inherit; }
+button { cursor: pointer; }
+
+/* ---------- shell ---------- */
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 240px;
+  padding: 20px 0 16px;
+  background: var(--inverse-canvas);
+  color: var(--inverse-ink);
+  border-right: 1px solid var(--hairline);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+.brand { display: flex; align-items: center; gap: 10px; padding: 0 16px 26px; }
+.brand-mark {
+  width: 32px; height: 32px; border-radius: 7px;
+  background: var(--primary); color: #fff;
+  display: grid; place-items: center; font-size: 20px; line-height: 1;
+}
+.brand-mark svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.brand-title { font-size: 14px; font-weight: 600; }
+.brand-sub { font-size: 11px; color: var(--inverse-ink-muted); letter-spacing: .32px; margin-top: 2px; }
+
+.nav { display: flex; flex-direction: column; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  height: 40px; padding: 0 13px 0 12px;
+  border: 0; border-left: 3px solid transparent; border-radius: 0;
+  background: transparent; color: var(--inverse-ink-muted);
+  font-size: 14px; text-align: left;
+  transition: background .2s ease, color .2s ease;
+}
+.nav-item svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.nav-item:hover { background: var(--inverse-surface-1); color: var(--inverse-ink); }
+.nav-item.active { background: var(--inverse-surface-1); color: var(--inverse-ink); border-left-color: var(--primary); font-weight: 600; }
+
+.sidebar-foot { margin-top: auto; padding: 14px 16px 0; border-top: 1px solid var(--inverse-surface-1); display: flex; align-items: center; gap: 9px; }
+.foot-dot { width: 8px; height: 8px; border-radius: 0; background: var(--success); }
+.foot-label { font-size: 11px; color: var(--inverse-ink-muted); letter-spacing: .32px; }
+.foot-value { font-size: 12px; color: var(--inverse-ink); margin-top: 2px; }
+
+
+.main { margin-left: 240px; min-height: 100vh; padding: 0 32px 64px; }
+.utility-bar {
+  height: 32px; margin: 0 -32px 24px; padding: 0 32px;
+  background: var(--surface-1); border-bottom: 1px solid var(--hairline);
+  color: var(--ink-muted); font-size: 12px; letter-spacing: .32px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.content { max-width: 1280px; margin: 0 auto; }
+
+.topbar {
+  max-width: 1280px; margin: 0 auto 24px; padding-bottom: 18px;
+  border-bottom: 1px solid var(--hairline);
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;
+}
+.topbar h1 { margin: 0; font-size: 32px; font-weight: 400; line-height: 1.25; letter-spacing: 0; }
+.topbar p { margin: 4px 0 0; font-size: 14px; color: var(--ink-muted); }
+.top-actions { display: flex; gap: 8px; align-items: center; }
+
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 0;
+  border: 1px solid var(--hairline); background: var(--canvas); color: var(--ink-muted);
+  display: grid; place-items: center; transition: background .2s ease, color .2s ease;
+}
+.icon-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.icon-btn:hover { background: var(--surface-1); color: var(--ink); }
+
+.primary-btn {
+  border: 0; border-radius: 0; background: var(--primary); color: #fff;
+  padding: 10px 16px; min-height: 36px; font-size: 14px; font-weight: 400;
+  transition: background .2s ease;
+}
+.primary-btn:hover { background: var(--primary-hover); }
+.primary-btn:active { background: var(--primary-pressed); }
+.hidden { display: none !important; }
+
+/* ---------- cards & KPI ---------- */
+.card { background: var(--canvas); border: 1px solid var(--hairline); border-radius: 0; padding: 20px 24px; }
+.card h2 { margin: 0 0 16px; font-size: 16px; font-weight: 600; }
+.card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px; }
+.card-head h2 { margin: 0; }
+.card-head span { font-size: 12px; color: var(--ink-subtle); letter-spacing: .32px; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.kpi { padding: 18px 20px; }
+.kpi-label { font-size: 12px; color: var(--ink-muted); letter-spacing: .32px; display: flex; align-items: center; gap: 7px; }
+.kpi-label i { width: 8px; height: 8px; border-radius: 0; display: inline-block; }
+.kpi-ic { width: 26px; height: 26px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.kpi-ic svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.kpi-value { font-size: 40px; font-weight: 300; letter-spacing: 0; line-height: 1.2; margin-top: 8px; }
+.kpi-note { font-size: 12px; color: var(--ink-subtle); margin-top: 6px; }
+
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.donut-wrap { display: flex; align-items: center; gap: 24px; }
+.donut-wrap svg { width: 164px; height: 164px; flex: none; }
+.donut-center { font-size: 26px; font-weight: 300; fill: var(--ink); letter-spacing: 0; }
+.donut-caption { font-size: 10px; fill: var(--ink-subtle); }
+.legend { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 0; }
+.legend-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-muted); }
+.legend-row .swatch { width: 10px; height: 10px; border-radius: 0; flex: none; }
+.legend-row .legend-value { margin-left: auto; font-weight: 600; color: var(--ink); }
+.bar-chart { width: 100%; height: 196px; display: block; }
+.bar-chart text { fill: var(--ink-subtle); font-size: 11px; font-family: inherit; letter-spacing: .16px; }
+
+.progress-item + .progress-item { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--hairline); }
+.progress-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.progress-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.progress-pct { font-size: 13px; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.progress-meta { font-size: 12px; color: var(--ink-subtle); margin-top: 3px; }
+.track { height: 8px; border-radius: 0; background: var(--surface-1); border: 1px solid var(--hairline); overflow: hidden; margin-top: 9px; }
+.track > div { height: 100%; border-radius: 0; transition: width .35s ease; }
+
+.alert-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; }
+.alert-row + .alert-row { border-top: 1px solid var(--hairline); }
+.alert-dot { width: 8px; height: 8px; border-radius: 0; margin-top: 5px; flex: none; }
+.alert-body { min-width: 0; }
+.alert-title { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.alert-meta { font-size: 12px; color: var(--ink-muted); margin-top: 2px; }
+.alert-days { margin-left: auto; font-size: 12px; font-weight: 600; white-space: nowrap; padding-top: 2px; }
+
+/* ---------- toolbar & tables ---------- */
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+.chips { display: flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--hairline); }
+.chip { border: 0; border-right: 1px solid var(--hairline); border-radius: 0; background: var(--canvas); color: var(--ink-muted); padding: 8px 13px; font-size: 13px; transition: background .2s ease, color .2s ease; }
+.chip:last-child { border-right: 0; }
+.chip:hover { background: var(--surface-1); }
+.chip.active { background: var(--ink); color: #fff; font-weight: 600; }
+.search { margin-left: auto; }
+.search input { width: 230px; height: 36px; border-radius: 0; border: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); background: var(--surface-1); padding: 0 12px; font-size: 13px; color: var(--ink); outline: none; transition: border-color .2s ease; }
+.search input:focus { border-bottom: 2px solid var(--primary); }
+
+.table-card { padding: 0; overflow: hidden; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-size: 12px; font-weight: 400; letter-spacing: .32px; color: var(--ink-muted); background: var(--surface-1); padding: 11px 9px; white-space: nowrap; }
+td { padding: 12px 9px; font-size: 14px; border-top: 1px solid var(--hairline); white-space: nowrap; }
+tbody tr { transition: background .2s ease; }
+tbody tr:hover { background: var(--surface-1); }
+.cell-title { font-weight: 600; }
+.cell-sub { font-size: 12px; color: var(--ink-subtle); margin-top: 2px; }
+.pill { display: inline-flex; align-items: center; border-radius: 2px; padding: 3px 8px; font-size: 11.5px; font-weight: 600; letter-spacing: .16px; }
+.row-actions { display: flex; gap: 4px; }
+.text-btn { border: 0; border-radius: 0; background: transparent; color: var(--primary); font-size: 13px; padding: 4px 6px; }
+.text-btn:hover { background: var(--surface-1); text-decoration: underline; }
+.text-btn.danger { color: var(--error); }
+.text-btn.danger:hover { background: #fff1f1; }
+.mini-track { width: 88px; height: 6px; border-radius: 0; background: var(--surface-1); overflow: hidden; margin-top: 6px; }
+.mini-track > div { height: 100%; border-radius: 0; }
+
+/* ---------- suppliers ---------- */
+.supplier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.supplier-card { padding: 18px 20px; }
+.supplier-head { display: flex; gap: 12px; align-items: center; }
+.avatar { width: 40px; height: 40px; border-radius: 0; display: grid; place-items: center; font-size: 16px; font-weight: 600; flex: none; }
+.supplier-name { font-size: 15px; font-weight: 600; }
+.supplier-type { font-size: 12px; color: var(--ink-subtle); margin-top: 2px; }
+.supplier-info { margin-top: 14px; display: grid; gap: 6px; font-size: 13px; }
+.supplier-info div { display: flex; justify-content: space-between; gap: 10px; }
+.supplier-info span { color: var(--ink-subtle); }
+.supplier-info b { font-weight: 400; }
+.supplier-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--hairline); }
+
+.summary-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+.summary-cell { padding: 16px 20px; }
+.summary-label { font-size: 12px; color: var(--ink-muted); letter-spacing: .32px; }
+.summary-value { font-size: 28px; font-weight: 300; letter-spacing: 0; margin-top: 6px; }
+
+.empty { text-align: center; color: var(--ink-subtle); padding: 48px 20px; font-size: 13px; }
+.loading { text-align: center; color: var(--ink-subtle); padding: 72px 0; font-size: 13px; }
+
+/* ---------- modal ---------- */
+.overlay { position: fixed; inset: 0; z-index: 50; background: rgba(22, 22, 22, .48); display: grid; place-items: center; padding: 16px; }
+.modal { width: min(580px, 100%); max-height: 88vh; overflow-y: auto; background: var(--canvas); border: 1px solid var(--hairline-strong); border-radius: 0; padding: 24px 28px; }
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-head h3 { margin: 0; font-size: 20px; font-weight: 400; letter-spacing: 0; }
+.close-btn { border: 0; border-radius: 0; background: var(--surface-1); color: var(--ink); width: 30px; height: 30px; font-size: 17px; line-height: 1; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field label { display: block; font-size: 12px; color: var(--ink-muted); letter-spacing: .32px; margin-bottom: 5px; }
+.field label em { color: var(--error); font-style: normal; margin-left: 3px; }
+.field input, .field select, .field textarea {
+  width: 100%; border: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline-strong);
+  border-radius: 0; background: var(--surface-1); padding: 0 12px; height: 38px;
+  font-size: 14px; color: var(--ink); outline: none;
+  transition: border-color .2s ease;
+}
+.field textarea { height: 72px; padding: 9px 12px; resize: vertical; }
+.field input:focus, .field select:focus, .field textarea:focus { border-bottom: 2px solid var(--primary); }
+.field.full { grid-column: 1 / -1; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+.ghost-btn { border: 1px solid var(--hairline-strong); border-radius: 0; background: var(--canvas); color: var(--ink); padding: 10px 16px; font-size: 14px; }
+.ghost-btn:hover { background: var(--surface-1); }
+
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translate(-50%, 12px); z-index: 80; background: var(--ink); color: #fff; padding: 11px 18px; border-radius: 0; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .25s ease, transform .25s ease; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 1080px) {
+  .supplier-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .sidebar { position: static; width: 100%; height: auto; flex-direction: column; align-items: stretch; padding: 8px 12px 6px; border-bottom: 1px solid var(--inverse-surface-1); gap: 6px; }
+  .brand { padding: 0 0 4px; }
+  .brand-mark { width: 26px; height: 26px; font-size: 16px; }
+  .brand-sub, .sidebar-foot { display: none; }
+  .nav { flex-direction: row; flex-wrap: wrap; gap: 2px; }
+  .nav-item { flex: 1 1 30%; height: 36px; justify-content: center; padding: 0 6px; font-size: 13px; white-space: nowrap; }
+  .nav-item svg { width: 16px; height: 16px; }
+  .main { margin-left: 0; padding: 0 16px 48px; }
+  .utility-bar { margin: 0 -16px 20px; padding: 0 16px; }
+  .chart-grid, .summary-strip { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .supplier-grid, .form-grid { grid-template-columns: 1fr; }
+  .search { margin-left: 0; width: 100%; }
+  .search input { width: 100%; }
+  .donut-wrap { flex-direction: column; align-items: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+.reset-link { border:0; background:transparent; color:var(--primary); font-size:12px; padding:0 0 0 10px; text-decoration:underline; cursor:pointer; letter-spacing:inherit; }
+.reset-link:hover { color:var(--primary-hover); }
+/* 可拖拉表格框：框内滚动 + 底部拖拉条 */
+.rs-box{position:relative;overflow:auto;height:380px;min-height:180px;max-height:900px;overscroll-behavior:contain}
+.rs-bar{height:14px;cursor:ns-resize;display:flex;align-items:center;justify-content:center;margin-top:3px;user-select:none;border-top:1px solid rgba(127,127,127,.22)}
+.rs-bar span{width:38px;height:3px;border-radius:2px;background:rgba(127,127,127,.35)}
+.rs-bar:hover span{background:rgba(127,127,127,.6)}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-mark"><svg viewBox="0 0 24 24"><path d="M4 21V7l8-4 8 4v14"/><path d="M2 21h20M9 21v-5h6v5"/></svg></div>
+    <div>
+      <div class="brand-title">设施运维工作台</div>
+      <div class="brand-sub">Digital Twin CMMS</div>
+    </div>
+  </div>
+
+  <nav class="nav" aria-label="主导航">
+    <button class="nav-item active" data-route="overview">
+      <svg viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>
+      <span>总览</span>
+    </button>
+    <button class="nav-item" data-route="equipment">
+      <svg viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>
+      <span>设施设备</span>
+    </button>
+    <button class="nav-item" data-route="work_orders">
+      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.8-.7-.7-2.8 2.8-2.8Z"/></svg>
+      <span>运维工单</span>
+    </button>
+    <button class="nav-item" data-route="suppliers">
+      <svg viewBox="0 0 24 24"><path d="M4 21V6l8-3 8 3v15"/><path d="M9 21v-5h6v5"/></svg>
+      <span>供委单位</span>
+    </button>
+    <button class="nav-item" data-route="contracts">
+      <svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6V3Z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg>
+      <span>合同管理</span>
+    </button>
+    <button class="nav-item" data-route="milestones">
+      <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>
+      <span>履约进度</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-foot">
+    <div class="foot-dot"></div>
+    <div>
+      <div class="foot-label">界面示例数据</div>
+      <div class="foot-value" id="data-date">—</div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="utility-bar"><span>设施运维 / 合同履约工作台</span><span>CMMS · 界面示例数据<button class="reset-link" id="reset-btn">重置示例</button></span></div>
+  <header class="topbar">
+    <div>
+      <h1 id="page-title">总览</h1>
+      <p id="page-sub">设施设备与合同履约全景</p>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" id="themeBtn" title="切换深色/浅色" aria-label="切换深色浅色">
+        <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+      <button class="icon-btn" id="refresh-btn" title="刷新数据" aria-label="刷新数据">
+        <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/></svg>
+      </button>
+      <button class="primary-btn hidden" id="add-btn"><span>+</span> <span id="add-label">新增</span></button>
+    </div>
+  </header>
+
+  <div class="content" id="view">
+    <div class="loading">加载中…</div>
+  </div>
+</main>
+
+<div id="modal-root"></div>
+<div id="toast" class="toast"></div>
+<script>
+/* 主题切换：默认浅色，记忆选择 */
+(function(){
+  var ICON_MOON='<svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  var ICON_SUN='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  function applyTheme(t){
+    if(t==='dark') document.documentElement.setAttribute('data-theme','dark');
+    else document.documentElement.removeAttribute('data-theme');
+    var btn=document.getElementById('themeBtn');
+    if(btn) btn.innerHTML=(t==='dark'?ICON_SUN:ICON_MOON);
+    try{ localStorage.setItem('facilityapp-theme',t); }catch(e){}
+  }
+  var initT='light'; try{ initT=localStorage.getItem('facilityapp-theme')||'light'; }catch(e){}
+  applyTheme(initT);
+  var btn=document.getElementById('themeBtn');
+  if(btn) btn.onclick=function(){
+    var now=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';
+    applyTheme(now==='dark'?'light':'dark');
+  };
+})();
+
+const ROUTES = {
+  overview: { title: '总览', sub: '设施设备与合同履约全景', add: null },
+  equipment: { title: '设施设备', sub: '设备台账与维保计划', add: '新增设备' },
+  work_orders: { title: '运维工单', sub: '报修、计划维保与巡检', add: '新增工单' },
+  suppliers: { title: '供委单位', sub: '供应商与服务单位台账', add: '新增单位' },
+  contracts: { title: '合同管理', sub: '合同台账与金额概览', add: '新增合同' },
+  milestones: { title: '履约进度', sub: '合同节点与完成情况', add: '新增节点' },
+};
+
+const EQUIPMENT_STATUS = ['在用', '维保中', '报修', '停用'];
+const WO_STATUS = ['待处理', '处理中', '已完成', '已关闭'];
+const CONTRACT_STATUS = ['执行中', '待签', '已完成', '已终止'];
+const MILESTONE_STATUS = ['未开始', '进行中', '已完成', '逾期'];
+const FILTERS = {
+  equipment: EQUIPMENT_STATUS,
+  work_orders: WO_STATUS,
+  suppliers: ['合作中', '备用', '终止'],
+  contracts: CONTRACT_STATUS,
+  milestones: MILESTONE_STATUS,
+};
+const NOUNS = { equipment: '设备', work_orders: '工单', suppliers: '单位', contracts: '合同', milestones: '节点' };
+
+const COLORS = {
+  blue: '#0f62fe', green: '#24a148', orange: '#f1c21b', red: '#da1e28',
+  purple: '#0043ce', teal: '#6bc0ff', gray: '#8c8c8c',
+};
+// 文字专用色：亮黄做文字在浅底上看不清，改用深琥珀；色点仍用亮色
+const TEXT_COLORS = { orange: '#8a6100', red: '#c41e26' };
+const PILLS = {
+  '在用': ['#DEFBE6', '#0E6027'], '维保中': ['#FCF4D6', '#7A6100'],
+  '报修': ['#FFF1F1', '#A2191F'], '停用': ['#F4F4F4', '#525252'],
+  '待处理': ['#FCF4D6', '#7A6100'], '处理中': ['#E5F0FF', '#0043CE'],
+  '已完成': ['#DEFBE6', '#0E6027'], '已关闭': ['#F4F4F4', '#525252'],
+  '执行中': ['#DEFBE6', '#0E6027'], '待签': ['#FCF4D6', '#7A6100'],
+  '已终止': ['#F4F4F4', '#525252'],
+  '未开始': ['#F4F4F4', '#525252'], '进行中': ['#E5F0FF', '#0043CE'],
+  '逾期': ['#FFF1F1', '#A2191F'],
+  '合作中': ['#DEFBE6', '#0E6027'], '备用': ['#FCF4D6', '#7A6100'],
+  '终止': ['#F4F4F4', '#525252'],
+  '高': ['#FFF1F1', '#A2191F'], '中': ['#FCF4D6', '#7A6100'], '低': ['#F4F4F4', '#525252'],
+};
+
+const FIELDS = {
+  equipment: [
+    { key: 'code', label: '设备编号', placeholder: '留空自动生成' },
+    { key: 'name', label: '设备名称', required: true },
+    { key: 'category', label: '设备类别', type: 'select', options: ['暖通', '电气', '给排水', '消防', '电梯', '弱电'] },
+    { key: 'location', label: '安装位置', required: true },
+    { key: 'status', label: '运行状态', type: 'select', options: EQUIPMENT_STATUS },
+    { key: 'install_date', label: '安装日期', type: 'date' },
+    { key: 'last_maintenance', label: '上次维保', type: 'date' },
+    { key: 'next_maintenance', label: '下次维保', type: 'date' },
+    { key: 'manager', label: '负责人' },
+  ],
+  work_orders: [
+    { key: 'code', label: '工单编号', placeholder: '留空自动生成' },
+    { key: 'title', label: '工单标题', required: true },
+    { key: 'equipment_id', label: '关联设备', type: 'select', optionsFrom: 'equipment' },
+    { key: 'type', label: '工单类型', type: 'select', options: ['报修', '计划维保', '巡检'] },
+    { key: 'priority', label: '优先级', type: 'select', options: ['高', '中', '低'] },
+    { key: 'status', label: '处理状态', type: 'select', options: WO_STATUS },
+    { key: 'assignee', label: '处理人' },
+    { key: 'created_date', label: '创建日期', type: 'date' },
+    { key: 'due_date', label: '截止日期', type: 'date' },
+    { key: 'completed_date', label: '完成日期', type: 'date' },
+  ],
+  suppliers: [
+    { key: 'name', label: '单位名称', required: true },
+    { key: 'service_type', label: '服务类别' },
+    { key: 'contact', label: '联系人' },
+    { key: 'phone', label: '联系电话' },
+    { key: 'qualification', label: '资质等级' },
+    { key: 'rating', label: '履约评分', type: 'number', placeholder: '0 - 5' },
+    { key: 'status', label: '合作状态', type: 'select', options: ['合作中', '备用', '终止'] },
+  ],
+  contracts: [
+    { key: 'code', label: '合同编号', placeholder: '留空自动生成' },
+    { key: 'name', label: '合同名称', required: true },
+    { key: 'supplier_id', label: '供委单位', type: 'select', optionsFrom: 'suppliers' },
+    { key: 'amount', label: '合同金额（元）', type: 'number' },
+    { key: 'sign_date', label: '签订日期', type: 'date' },
+    { key: 'start_date', label: '生效日期', type: 'date' },
+    { key: 'end_date', label: '到期日期', type: 'date' },
+    { key: 'status', label: '合同状态', type: 'select', options: CONTRACT_STATUS },
+    { key: 'owner', label: '归口部门' },
+    { key: 'payment_terms', label: '付款方式' },
+  ],
+  milestones: [
+    { key: 'contract_id', label: '所属合同', type: 'select', optionsFrom: 'contracts', required: true },
+    { key: 'title', label: '节点名称', required: true },
+    { key: 'plan_date', label: '计划日期', type: 'date' },
+    { key: 'completed_date', label: '完成日期', type: 'date' },
+    { key: 'progress', label: '进度（%）', type: 'number' },
+    { key: 'status', label: '节点状态', type: 'select', options: MILESTONE_STATUS },
+    { key: 'note', label: '备注', type: 'textarea', full: true },
+  ],
+};
+
+const state = { route: 'overview', data: null, cache: {}, filters: {} };
+const view = document.getElementById('view');
+let toastTimer;
+
+const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pill = (text) => {
+  const [bg, color] = PILLS[text] || ['#EFEFF2', '#6E6E73'];
+  return `<span class="pill" style="background:${bg};color:${color}">${esc(text || '—')}</span>`;
+};
+const money = (value) => '¥' + (Number(value || 0) / 10000).toFixed(1) + ' 万';
+
+// ===== 示例数据层：内置示例数据 + 浏览器内保存，无需后端 =====
+const SEED = {"suppliers":[{"id":1,"name":"华建机电设备维保有限公司","service_type":"机电维保","contact":"刘经理","phone":"138-0102-3371","qualification":"建筑机电安装一级","rating":4.8,"status":"合作中"},{"id":2,"name":"安消消防技术服务有限公司","service_type":"消防维保","contact":"周工","phone":"139-1155-2088","qualification":"消防设施维护保养二级","rating":4.5,"status":"合作中"},{"id":3,"name":"恒晟电梯工程有限公司","service_type":"电梯维保","contact":"陈经理","phone":"137-0088-6120","qualification":"电梯安装维修 A 级","rating":4.6,"status":"合作中"},{"id":4,"name":"智联楼宇智能化有限公司","service_type":"弱电智能化","contact":"孙工","phone":"136-2244-7810","qualification":"建筑智能化二级","rating":4.2,"status":"备用"},{"id":5,"name":"清源给排水工程有限公司","service_type":"给排水","contact":"何工","phone":"135-6677-2091","qualification":"管道工程三级","rating":4.0,"status":"合作中"}],"equipment":[{"id":1,"code":"EQ-001","name":"冷水机组 1#","category":"暖通","location":"B1 冷机房","status":"在用","install_date":"2021-05-18","last_maintenance":"2026-09-12","next_maintenance":"2026-12-10","manager":"张伟"},{"id":2,"code":"EQ-002","name":"冷却塔 2#","category":"暖通","location":"屋面","status":"在用","install_date":"2022-07-01","last_maintenance":"2026-08-20","next_maintenance":"2026-11-25","manager":"张伟"},{"id":3,"code":"EQ-003","name":"低压配电柜","category":"电气","location":"B1 配电室","status":"维保中","install_date":"2020-03-15","last_maintenance":"2026-10-08","next_maintenance":"2026-11-22","manager":"李强"},{"id":4,"code":"EQ-004","name":"消防泵组","category":"消防","location":"B2 消防泵房","status":"在用","install_date":"2019-11-20","last_maintenance":"2026-10-30","next_maintenance":"2027-01-15","manager":"王芳"},{"id":5,"code":"EQ-005","name":"乘客电梯 1#","category":"电梯","location":"1 号梯厅","status":"在用","install_date":"2020-09-09","last_maintenance":"2026-11-02","next_maintenance":"2026-12-02","manager":"陈刚"},{"id":6,"code":"EQ-006","name":"空调末端 AHU-3F","category":"暖通","location":"3F 东区","status":"报修","install_date":"2023-04-12","last_maintenance":"2026-07-18","next_maintenance":"2026-11-18","manager":"张伟"},{"id":7,"code":"EQ-007","name":"生活水箱","category":"给排水","location":"B2 水泵房","status":"在用","install_date":"2021-06-30","last_maintenance":"2026-09-30","next_maintenance":"2026-12-30","manager":"王芳"},{"id":8,"code":"EQ-008","name":"监控主机","category":"弱电","location":"1F 消控室","status":"在用","install_date":"2022-02-14","last_maintenance":"2026-10-15","next_maintenance":"2026-12-15","manager":"赵敏"},{"id":9,"code":"EQ-009","name":"排烟风机","category":"消防","location":"B1 车库","status":"停用","install_date":"2019-08-22","last_maintenance":"2026-05-10","next_maintenance":"2026-11-10","manager":"王芳"},{"id":10,"code":"EQ-010","name":"干式变压器","category":"电气","location":"B1 配电室","status":"在用","install_date":"2018-12-01","last_maintenance":"2026-11-05","next_maintenance":"2027-02-05","manager":"李强"}],"contracts":[{"id":1,"code":"CT-2026-001","name":"2026 年度暖通系统维保合同","supplier_id":1,"amount":286000,"sign_date":"2026-01-10","start_date":"2026-01-15","end_date":"2027-01-14","status":"执行中","owner":"后勤部","payment_terms":"季度付款"},{"id":2,"code":"CT-2026-002","name":"消防设施年度维保合同","supplier_id":2,"amount":168000,"sign_date":"2026-01-20","start_date":"2026-01-25","end_date":"2026-12-31","status":"执行中","owner":"安保部","payment_terms":"季度付款"},{"id":3,"code":"CT-2026-003","name":"电梯维保及年检服务合同","supplier_id":3,"amount":132000,"sign_date":"2026-01-08","start_date":"2026-02-01","end_date":"2026-11-30","status":"执行中","owner":"后勤部","payment_terms":"月度付款"},{"id":4,"code":"CT-2026-004","name":"弱电系统升级改造合同","supplier_id":4,"amount":420000,"sign_date":"2026-05-28","start_date":"2026-06-10","end_date":"2026-12-20","status":"执行中","owner":"工程部","payment_terms":"节点付款"},{"id":5,"code":"CT-2026-005","name":"给排水设备检修合同","supplier_id":5,"amount":96000,"sign_date":"2026-08-15","start_date":"2026-08-20","end_date":"2026-10-31","status":"已完成","owner":"后勤部","payment_terms":"验收后付款"},{"id":6,"code":"CT-2026-006","name":"配电室预防性试验合同","supplier_id":1,"amount":78000,"sign_date":"","start_date":"2027-01-01","end_date":"2027-03-31","status":"待签","owner":"工程部","payment_terms":"验收后付款"}],"work_orders":[{"id":1,"code":"WO-0001","equipment_id":6,"title":"空调末端不制冷","type":"报修","priority":"高","status":"处理中","assignee":"张伟","created_date":"2026-11-17","due_date":"2026-11-21","completed_date":null},{"id":2,"code":"WO-0002","equipment_id":3,"title":"配电柜年度检修","type":"计划维保","priority":"中","status":"待处理","assignee":"李强","created_date":"2026-11-18","due_date":"2026-11-25","completed_date":null},{"id":3,"code":"WO-0003","equipment_id":2,"title":"冷却塔填料更换","type":"计划维保","priority":"中","status":"已完成","assignee":"张伟","created_date":"2026-11-05","due_date":"2026-11-15","completed_date":"2026-11-14"},{"id":4,"code":"WO-0004","equipment_id":4,"title":"消防泵月度试运行","type":"巡检","priority":"低","status":"已完成","assignee":"王芳","created_date":"2026-11-10","due_date":"2026-11-12","completed_date":"2026-11-12"},{"id":5,"code":"WO-0005","equipment_id":1,"title":"冷水机组异响排查","type":"报修","priority":"高","status":"已完成","assignee":"张伟","created_date":"2026-11-02","due_date":"2026-11-06","completed_date":"2026-11-07"},{"id":6,"code":"WO-0006","equipment_id":5,"title":"电梯年检配合","type":"计划维保","priority":"高","status":"待处理","assignee":"陈刚","created_date":"2026-11-15","due_date":"2026-11-28","completed_date":null},{"id":7,"code":"WO-0007","equipment_id":8,"title":"监控硬盘扩容","type":"报修","priority":"中","status":"处理中","assignee":"赵敏","created_date":"2026-11-16","due_date":"2026-11-23","completed_date":null},{"id":8,"code":"WO-0008","equipment_id":9,"title":"排烟风机故障检修","type":"报修","priority":"高","status":"待处理","assignee":"王芳","created_date":"2026-11-01","due_date":"2026-11-10","completed_date":null},{"id":9,"code":"WO-0009","equipment_id":7,"title":"水箱清洗及水质检测","type":"计划维保","priority":"中","status":"已完成","assignee":"王芳","created_date":"2026-10-20","due_date":"2026-10-31","completed_date":"2026-10-30"},{"id":10,"code":"WO-0010","equipment_id":10,"title":"变压器预防性试验","type":"计划维保","priority":"高","status":"待处理","assignee":"李强","created_date":"2026-11-19","due_date":"2026-12-05","completed_date":null},{"id":11,"code":"WO-0011","equipment_id":1,"title":"冷机水质检测","type":"巡检","priority":"低","status":"已完成","assignee":"张伟","created_date":"2026-10-25","due_date":"2026-10-28","completed_date":"2026-10-27"},{"id":12,"code":"WO-0012","equipment_id":6,"title":"滤网清洗","type":"计划维保","priority":"低","status":"已关闭","assignee":"张伟","created_date":"2026-10-12","due_date":"2026-10-18","completed_date":"2026-10-17"},{"id":13,"code":"WO-0013","equipment_id":3,"title":"配电室温度巡检","type":"巡检","priority":"低","status":"已完成","assignee":"李强","created_date":"2026-11-12","due_date":"2026-11-13","completed_date":"2026-11-13"},{"id":14,"code":"WO-0014","equipment_id":5,"title":"电梯轿厢照明更换","type":"报修","priority":"中","status":"处理中","assignee":"陈刚","created_date":"2026-11-18","due_date":"2026-11-22","completed_date":null}],"milestones":[{"id":1,"contract_id":1,"title":"第一季度维保验收","plan_date":"2026-04-10","completed_date":"2026-04-08","progress":100,"status":"已完成","note":""},{"id":2,"contract_id":1,"title":"第二季度维保验收","plan_date":"2026-07-10","completed_date":"2026-07-11","progress":100,"status":"已完成","note":""},{"id":3,"contract_id":1,"title":"第三季度维保验收","plan_date":"2026-10-10","completed_date":"2026-10-10","progress":100,"status":"已完成","note":""},{"id":4,"contract_id":1,"title":"第四季度维保验收","plan_date":"2026-12-20","completed_date":null,"progress":75,"status":"进行中","note":"冷机保养待完成"},{"id":5,"contract_id":2,"title":"消防系统全面检测","plan_date":"2026-09-30","completed_date":"2026-09-28","progress":100,"status":"已完成","note":""},{"id":6,"contract_id":2,"title":"年度消防演练配合","plan_date":"2026-11-30","completed_date":null,"progress":60,"status":"进行中","note":""},{"id":7,"contract_id":2,"title":"消防维保年度总结","plan_date":"2026-12-25","completed_date":null,"progress":0,"status":"未开始","note":""},{"id":8,"contract_id":3,"title":"电梯年度检验","plan_date":"2026-11-15","completed_date":"2026-11-14","progress":100,"status":"已完成","note":""},{"id":9,"contract_id":3,"title":"电梯维保季度结算","plan_date":"2026-11-28","completed_date":null,"progress":80,"status":"进行中","note":""},{"id":10,"contract_id":4,"title":"弱电系统方案确认","plan_date":"2026-06-30","completed_date":"2026-06-28","progress":100,"status":"已完成","note":""},{"id":11,"contract_id":4,"title":"设备到货验收","plan_date":"2026-10-15","completed_date":"2026-10-18","progress":100,"status":"已完成","note":""},{"id":12,"contract_id":4,"title":"系统联调","plan_date":"2026-11-25","completed_date":null,"progress":65,"status":"进行中","note":"监控点位调试中"},{"id":13,"contract_id":4,"title":"项目终验","plan_date":"2026-12-18","completed_date":null,"progress":0,"status":"未开始","note":""},{"id":14,"contract_id":5,"title":"管道检修完成","plan_date":"2026-09-20","completed_date":"2026-09-22","progress":100,"status":"已完成","note":""},{"id":15,"contract_id":5,"title":"水质复检","plan_date":"2026-10-25","completed_date":"2026-10-24","progress":100,"status":"已完成","note":""},{"id":16,"contract_id":6,"title":"试验方案评审","plan_date":"2026-12-10","completed_date":null,"progress":20,"status":"进行中","note":"合同待签"},{"id":17,"contract_id":1,"title":"年度设备档案移交","plan_date":"2026-11-10","completed_date":null,"progress":0,"status":"逾期","note":"需补交图纸"},{"id":18,"contract_id":2,"title":"灭火器年检","plan_date":"2026-11-18","completed_date":null,"progress":40,"status":"逾期","note":"尚有 12 具未检"}]};
+const STORE_KEY = 'cmms_workbench_v1';
+const CODE_PREFIX = { equipment: 'EQ', work_orders: 'WO', contracts: 'CT' };
+const REQUIRED = {
+  equipment: ['name','category','location'], work_orders: ['title'], suppliers: ['name'],
+  contracts: ['name'], milestones: ['title','contract_id'],
+};
+const INT_FIELDS = ['equipment_id','supplier_id','contract_id','progress'];
+const FLOAT_FIELDS = ['amount','rating'];
+
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+let store = null;
+try { store = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) { store = null; }
+if (!store || !store.equipment || !store.work_orders) {
+  store = deepClone(SEED);
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) {}
+}
+function persist(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) {} }
+
+function nextCode(key){
+  const nextId = store[key].reduce((m,r) => Math.max(m, r.id || 0), 0) + 1;
+  const year = new Date().getFullYear();
+  if (key === 'contracts') return `CT-${year}-${String(nextId).padStart(3,'0')}`;
+  if (key === 'work_orders') return `WO-${String(nextId).padStart(4,'0')}`;
+  return `${CODE_PREFIX[key]}-${String(nextId).padStart(3,'0')}`;
+}
+function sanitize(key, payload){
+  const clean = {};
+  Object.keys(payload || {}).forEach((f) => {
+    let v = payload[f];
+    if (typeof v === 'string') { v = v.trim(); if (v === '') v = null; }
+    if (INT_FIELDS.includes(f) && v != null) v = parseInt(v, 10);
+    if (FLOAT_FIELDS.includes(f) && v != null) v = parseFloat(v);
+    clean[f] = v;
+  });
+  return clean;
+}
+
+function daysUntil(value, today){
+  if (!value) return null;
+  return Math.round((new Date(value + 'T00:00:00') - new Date(today + 'T00:00:00')) / 86400000);
+}
+function monthKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function countBy(rows, field, order){
+  const m = {}; rows.forEach((r) => { m[r[field]] = (m[r[field]]||0)+1; });
+  const out = {}; order.forEach((k) => { out[k] = m[k]||0; }); return out;
+}
+function computeDashboard(){
+  const today = new Date().toISOString().slice(0,10);
+  const equipment = store.equipment, work_orders = store.work_orders, suppliers = store.suppliers;
+  const contracts = store.contracts, milestones = store.milestones;
+
+  const maintenance_alerts = [];
+  equipment.forEach((item) => {
+    if (item.status === '停用' || !item.next_maintenance) return;
+    const days = daysUntil(item.next_maintenance, today);
+    if (days != null && days <= 30) maintenance_alerts.push({
+      id:item.id, name:item.name, code:item.code, date:item.next_maintenance, days,
+      level: days < 0 ? '逾期' : '临期',
+    });
+  });
+  maintenance_alerts.sort((a,b) => a.days - b.days);
+
+  const active_orders = work_orders.filter((w) => !['已完成','已关闭'].includes(w.status));
+  const overdue_orders = active_orders.filter((w) => { const d = daysUntil(w.due_date, today); return d != null && d < 0; });
+  const expiring = contracts.filter((c) => c.status === '执行中' && ((d) => d != null && d <= 60)(daysUntil(c.end_date, today)));
+  const expiring_list = expiring.map((c) => ({ id:c.id, name:c.name, end_date:c.end_date, days:daysUntil(c.end_date, today) })).sort((a,b) => a.days - b.days);
+
+  const months = [];
+  const cur = new Date(new Date(today + 'T00:00:00').getFullYear(), new Date(today + 'T00:00:00').getMonth(), 1);
+  for (let i=0;i<6;i++){ months.push(monthKey(cur)); cur.setMonth(cur.getMonth()-1); }
+  months.reverse();
+  const mcount = {}; work_orders.forEach((w) => { const k = (w.created_date||'').slice(0,7); mcount[k] = (mcount[k]||0)+1; });
+
+  const contract_progress = contracts.slice().sort((a,b)=>b.id-a.id).map((c) => {
+    const ms = milestones.filter((m) => m.contract_id === c.id);
+    const sum = ms.reduce((s,m) => s + (m.progress||0), 0);
+    return {
+      id:c.id, code:c.code, name:c.name, amount:c.amount, end_date:c.end_date, status:c.status,
+      supplier_name: (suppliers.find((s) => s.id === c.supplier_id)||{}).name || '',
+      progress: ms.length ? Math.round(sum/ms.length) : null,
+      milestone_total: ms.length, milestone_done: ms.filter((m) => m.status === '已完成').length,
+    };
+  });
+
+  const ratings = suppliers.map((s) => s.rating).filter((r) => r != null);
+  const overdue_ms = milestones.filter((m) => m.status === '逾期');
+  const cnames = {}; contracts.forEach((c) => { cnames[c.id] = c.name; });
+  const overdue_list = overdue_ms.map((m) => ({ id:m.id, title:m.title, plan_date:m.plan_date, contract_name: cnames[m.contract_id]||'' }));
+
+  return {
+    today,
+    equipment: {
+      total: equipment.length, by_status: countBy(equipment,'status',EQUIPMENT_STATUS),
+      by_category: (()=>{ const m={}; equipment.forEach((e)=>{m[e.category]=(m[e.category]||0)+1;}); return m; })(),
+      attention: equipment.filter((e) => ['报修','维保中'].includes(e.status)).length,
+      maintenance_alerts,
+    },
+    work_orders: {
+      total: work_orders.length, open: active_orders.length,
+      by_status: countBy(work_orders,'status',WO_STATUS),
+      by_priority: countBy(work_orders,'priority',['高','中','低']),
+      overdue: overdue_orders.length,
+      monthly: months.map((m) => ({ month:m, count:mcount[m]||0 })),
+    },
+    suppliers: {
+      total: suppliers.length, active: suppliers.filter((s) => s.status === '合作中').length,
+      avg_rating: ratings.length ? Math.round(ratings.reduce((a,b)=>a+b,0)/ratings.length*10)/10 : 0,
+    },
+    contracts: {
+      total: contracts.length, active: contracts.filter((c) => c.status === '执行中').length,
+      total_amount: contracts.reduce((s,c) => s + (c.amount||0), 0),
+      by_status: countBy(contracts,'status',CONTRACT_STATUS),
+      expiring: expiring.length, expiring_list, progress: contract_progress,
+    },
+    milestones: {
+      total: milestones.length, by_status: countBy(milestones,'status',MILESTONE_STATUS),
+      overdue: overdue_ms.length, overdue_list,
+      overall_progress: milestones.length ? Math.round(milestones.reduce((s,m)=>s+(m.progress||0),0)/milestones.length) : 0,
+    },
+  };
+}
+
+async function api(path, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
+  const body = options.body ? JSON.parse(options.body) : null;
+  const parts = path.replace(/^\//,'').split('/');
+  const resource = parts[0];
+  const id = parts[1] ? Number(parts[1]) : null;
+
+  if (resource === 'dashboard') return computeDashboard();
+  if (!store[resource]) throw new Error('未知数据类别');
+
+  if (method === 'GET' && id == null) return store[resource].slice().sort((a,b) => b.id - a.id);
+  if (method === 'GET' && id != null) return store[resource].find((r) => r.id === id);
+
+  if (method === 'POST') {
+    const clean = sanitize(resource, body || {});
+    const missing = (REQUIRED[resource]||[]).filter((f) => clean[f] == null || clean[f] === '');
+    if (missing.length) throw new Error('缺少必填项：' + missing.join('、'));
+    if (resource === 'work_orders' && !clean.created_date) clean.created_date = new Date().toISOString().slice(0,10);
+    if (CODE_PREFIX[resource] && !clean.code) clean.code = nextCode(resource);
+    const nextId = store[resource].reduce((m,r) => Math.max(m, r.id||0), 0) + 1;
+    const row = Object.assign({ id: nextId }, clean);
+    store[resource].push(row); persist();
+    return row;
+  }
+  if (method === 'PUT') {
+    const row = store[resource].find((r) => r.id === id);
+    if (!row) throw new Error('记录不存在');
+    Object.assign(row, sanitize(resource, body || {})); persist();
+    return row;
+  }
+  if (method === 'DELETE') {
+    const idx = store[resource].findIndex((r) => r.id === id);
+    if (idx < 0) throw new Error('记录不存在');
+    store[resource].splice(idx, 1);
+    if (resource === 'contracts') store.milestones = store.milestones.filter((m) => m.contract_id !== id);
+    persist();
+    return { deleted: true };
+  }
+  throw new Error('未知操作');
+}
+
+function toast(message) {
+  const el = document.getElementById('toast');
+  el.textContent = message;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+async function loadCache() {
+  const [equipment, suppliers, contracts] = await Promise.all([
+    api('/equipment'), api('/suppliers'), api('/contracts'),
+  ]);
+  state.cache = { equipment, suppliers, contracts };
+}
+
+async function renderRoute() {
+  const route = (location.hash.replace(/^#\/?/, '') || 'overview').split('?')[0];
+  state.route = ROUTES[route] ? route : 'overview';
+  const meta = ROUTES[state.route];
+
+  document.querySelectorAll('.nav-item').forEach((btn) => btn.classList.toggle('active', btn.dataset.route === state.route));
+  document.getElementById('page-title').textContent = meta.title;
+  document.getElementById('page-sub').textContent = meta.sub;
+  document.getElementById('add-btn').classList.toggle('hidden', !meta.add);
+  document.getElementById('add-label').textContent = meta.add || '';
+  view.innerHTML = '<div class="loading">加载中…</div>';
+
+  try {
+    if (state.route === 'overview') {
+      state.data = await api('/dashboard');
+      document.getElementById('data-date').textContent = '数据截至 ' + state.data.today;
+      renderOverview(state.data);
+    } else {
+      state.data = await api('/' + state.route);
+      renderResource(state.route);
+    }
+  } catch (err) {
+    view.innerHTML = `<div class="empty">加载失败：${esc(err.message)}</div>`;
+  }
+}
+
+function donutChart(items, colors, caption) {
+  const total = items.reduce((sum, item) => sum + item.value, 0);
+  if (!total) return '<div class="empty">暂无数据</div>';
+  const radius = 62;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
+  const circles = items.map((item, i) => {
+    const length = circumference * item.value / total;
+    const circle = `<circle cx="84" cy="84" r="${radius}" fill="none" stroke="${colors[i % colors.length]}" stroke-width="18" stroke-dasharray="${Math.max(length - 2, 0)} ${circumference - Math.max(length - 2, 0)}" stroke-dashoffset="${-offset}" transform="rotate(-90 84 84)"></circle>`;
+    offset += length;
+    return circle;
+  }).join('');
+  const legend = items.map((item, i) => `<div class="legend-row"><i class="swatch" style="background:${colors[i % colors.length]}"></i><span>${esc(item.label)}</span><span class="legend-value">${item.value}</span></div>`).join('');
+  return `<div class="donut-wrap"><svg viewBox="0 0 168 168" role="img" aria-label="${esc(caption)}分布">${circles}<text x="84" y="81" text-anchor="middle" class="donut-center">${total}</text><text x="84" y="100" text-anchor="middle" class="donut-caption">${esc(caption)}</text></svg><div class="legend">${legend}</div></div>`;
+}
+
+function barChart(items) {
+  const max = Math.max(1, ...items.map((item) => item.count));
+  const bars = items.map((item, i) => {
+    const height = item.count / max * 116;
+    const x = 32 + i * 94;
+    const fill = i === items.length - 1 ? COLORS.blue : '#A6C8FF';
+    return `<rect x="${x}" y="${150 - height}" width="46" height="${height}" rx="0" fill="${fill}"></rect><text x="${x + 23}" y="${143 - height}" text-anchor="middle">${item.count}</text><text x="${x + 23}" y="173" text-anchor="middle">${esc(item.month.slice(5))}月</text>`;
+  }).join('');
+  return `<svg class="bar-chart" viewBox="0 0 600 190" role="img" aria-label="近六个月工单量"><line x1="22" y1="151" x2="578" y2="151" stroke="#E8E8ED"/>${bars}</svg>`;
+}
+
+function progressColor(value) {
+  return value >= 80 ? COLORS.green : value >= 40 ? COLORS.orange : COLORS.red;
+}
+
+function renderOverview(d) {
+  const alerts = [];
+  d.equipment.maintenance_alerts.forEach((a) => alerts.push({
+    title: `${a.name} · ${a.level === '逾期' ? '维保已超期' : '维保临期'}`,
+    meta: `${a.code} · 计划 ${a.date}`,
+    days: a.days < 0 ? `逾期 ${-a.days} 天` : `${a.days} 天后`,
+    color: a.days < 0 ? COLORS.red : COLORS.orange,
+    textColor: a.days < 0 ? TEXT_COLORS.red : TEXT_COLORS.orange,
+  }));
+  d.contracts.expiring_list.forEach((c) => alerts.push({
+    title: `${c.name} · 合同即将到期`,
+    meta: `到期日 ${c.end_date}`,
+    days: c.days < 0 ? `已到期 ${-c.days} 天` : `${c.days} 天后`,
+    color: COLORS.orange,
+    textColor: TEXT_COLORS.orange,
+  }));
+  d.milestones.overdue_list.forEach((m) => alerts.push({
+    title: `${m.title} · 节点逾期`,
+    meta: `${m.contract_name} · 计划 ${m.plan_date}`,
+    days: '需处理',
+    color: COLORS.red,
+    textColor: TEXT_COLORS.red,
+  }));
+  if (d.work_orders.overdue) alerts.push({
+    title: `${d.work_orders.overdue} 张工单超过截止日期`,
+    meta: '需尽快安排或更新状态', days: '需处理', color: COLORS.red, textColor: TEXT_COLORS.red,
+  });
+
+  const kpis = [
+    { label: '设施设备', value: d.equipment.total, note: `${d.equipment.attention} 台报修或维保中`, color: COLORS.blue,
+      ic: '<svg viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg>' },
+    { label: '进行中工单', value: d.work_orders.open, note: `累计 ${d.work_orders.total} 张 · 逾期 ${d.work_orders.overdue} 张`, color: COLORS.orange,
+      ic: '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.8-.7-.7-2.8 2.8-2.8Z"/></svg>' },
+    { label: '执行中合同', value: d.contracts.active, note: `${d.contracts.expiring} 份 60 天内到期`, color: COLORS.green,
+      ic: '<svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6V3Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>' },
+    { label: '合同总额', value: money(d.contracts.total_amount), note: `${d.suppliers.active} 家在合作供委单位`, color: COLORS.purple,
+      ic: '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 10.5h.01M6 13.5h.01M18 10.5h.01M18 13.5h.01"/></svg>' },
+  ];
+
+  view.innerHTML = `
+    <div class="kpi-grid">${kpis.map((k) => `<section class="card kpi"><div class="kpi-label"><span class="kpi-ic" style="color:${k.color};background:${k.color}14">${k.ic}</span>${k.label}</div><div class="kpi-value">${esc(k.value)}</div><div class="kpi-note">${esc(k.note)}</div></section>`).join('')}</div>
+    <div class="chart-grid">
+      <section class="card"><div class="card-head"><h2>设备状态分布</h2><span>共 ${d.equipment.total} 台</span></div>${donutChart(Object.entries(d.equipment.by_status).map(([label, value]) => ({ label, value })), [COLORS.green, COLORS.orange, COLORS.red, COLORS.gray], '台设备')}</section>
+      <section class="card"><div class="card-head"><h2>近 6 个月工单量</h2><span>按创建日期统计</span></div>${barChart(d.work_orders.monthly)}</section>
+    </div>
+    <div class="chart-grid">
+      <section class="card"><div class="card-head"><h2>合同履约进度</h2><span>平均 ${d.milestones.overall_progress}%</span></div>
+        ${d.contracts.progress.slice(0, 6).map((c) => `<div class="progress-item"><div class="progress-row"><span class="progress-name">${esc(c.name)}</span><span class="progress-pct">${c.progress || 0}%</span></div><div class="progress-meta">${esc(c.supplier_name || '未指定单位')} · ${c.milestone_done || 0}/${c.milestone_total || 0} 个节点完成 · 到期 ${esc(c.end_date || '—')}</div><div class="track"><div style="width:${c.progress || 0}%;background:${progressColor(c.progress || 0)}"></div></div></div>`).join('') || '<div class="empty">暂无合同</div>'}
+      </section>
+      <section class="card"><div class="card-head"><h2>待办提醒</h2><span>维保 / 合同 / 节点</span></div>
+        ${alerts.slice(0, 9).map((a) => `<div class="alert-row"><i class="alert-dot" style="background:${a.color}"></i><div class="alert-body"><div class="alert-title">${esc(a.title)}</div><div class="alert-meta">${esc(a.meta)}</div></div><span class="alert-days ${a.textColor === TEXT_COLORS.red ? 'tone-red' : 'tone-warn'}">${esc(a.days)}</span></div>`).join('') || '<div class="empty">暂无待办</div>'}
+      </section>
+    </div>`;
+}
+
+function toolbarHTML(route) {
+  const chips = ['all', ...(FILTERS[route] || [])].map((value) => `<button class="chip ${(state.filters[route] || 'all') === value ? 'active' : ''}" data-filter="${value}">${value === 'all' ? '全部' : esc(value)}</button>`).join('');
+  return `<div class="toolbar"><div class="chips">${chips}</div><div class="search"><input id="table-search" type="search" placeholder="搜索记录…" autocomplete="off"></div></div>`;
+}
+
+const TABLES = {
+  equipment: {
+    head: ['设备编号', '设备名称', '类别', '位置', '状态', '下次维保', '负责人', '操作'],
+    row: (r) => `<td class="cell-title">${esc(r.code)}</td><td>${esc(r.name)}</td><td>${esc(r.category)}</td><td>${esc(r.location)}</td><td>${pill(r.status)}</td><td>${esc(r.next_maintenance || '—')}</td><td>${esc(r.manager || '—')}</td><td>${rowActions(r.id)}</td>`,
+  },
+  work_orders: {
+    head: ['工单编号', '标题', '关联设备', '类型', '优先级', '状态', '负责人', '截止日期', '操作'],
+    row: (r) => `<td class="cell-title">${esc(r.code)}</td><td>${esc(r.title)}</td><td>${esc(equipmentName(r.equipment_id))}</td><td>${esc(r.type)}</td><td>${pill(r.priority)}</td><td>${pill(r.status)}</td><td>${esc(r.assignee || '—')}</td><td>${esc(r.due_date || '—')}</td><td>${rowActions(r.id)}</td>`,
+  },
+  contracts: {
+    head: ['合同编号', '合同名称', '供委单位', '金额', '到期日期', '状态', '归口部门', '操作'],
+    row: (r) => `<td class="cell-title">${esc(r.code)}</td><td>${esc(r.name)}</td><td>${esc(supplierName(r.supplier_id))}</td><td>${esc('¥' + Number(r.amount || 0).toLocaleString('zh-CN'))}</td><td>${esc(r.end_date || '—')}</td><td>${pill(r.status)}</td><td>${esc(r.owner || '—')}</td><td>${rowActions(r.id)}</td>`,
+  },
+  milestones: {
+    head: ['所属合同', '节点名称', '计划日期', '完成日期', '进度', '状态', '备注', '操作'],
+    row: (r) => `<td>${esc(contractName(r.contract_id))}</td><td class="cell-title">${esc(r.title)}</td><td>${esc(r.plan_date || '—')}</td><td>${esc(r.completed_date || '—')}</td><td>${r.progress || 0}%<div class="mini-track"><div style="width:${r.progress || 0}%;background:${progressColor(r.progress || 0)}"></div></div></td><td>${pill(r.status)}</td><td>${esc(r.note || '—')}</td><td>${rowActions(r.id)}</td>`,
+  },
+};
+
+function equipmentName(id) {
+  return state.cache.equipment?.find((e) => e.id === id)?.name || '—';
+}
+function supplierName(id) {
+  return state.cache.suppliers?.find((s) => s.id === id)?.name || '—';
+}
+function contractName(id) {
+  return state.cache.contracts?.find((c) => c.id === id)?.name || '—';
+}
+function rowActions(id) {
+  return `<div class="row-actions"><button class="text-btn" data-action="edit" data-id="${id}">编辑</button><button class="text-btn danger" data-action="delete" data-id="${id}">删除</button></div>`;
+}
+
+function renderResource(route) {
+  let extra = '';
+  if (route === 'contracts') {
+    const total = state.data.reduce((sum, c) => sum + (c.amount || 0), 0);
+    const active = state.data.filter((c) => c.status === '执行中');
+    extra = `<div class="summary-strip">
+      <section class="card summary-cell"><div class="summary-label">合同总额</div><div class="summary-value">${money(total)}</div></section>
+      <section class="card summary-cell"><div class="summary-label">执行中合同</div><div class="summary-value">${active.length} 份</div></section>
+      <section class="card summary-cell"><div class="summary-label">执行中金额</div><div class="summary-value">${money(active.reduce((sum, c) => sum + (c.amount || 0), 0))}</div></section>
+    </div>`;
+  }
+  if (route === 'milestones') {
+    const done = state.data.filter((m) => m.status === '已完成').length;
+    const late = state.data.filter((m) => m.status === '逾期').length;
+    const average = state.data.length ? Math.round(state.data.reduce((sum, m) => sum + (m.progress || 0), 0) / state.data.length) : 0;
+    extra = `<div class="summary-strip">
+      <section class="card summary-cell"><div class="summary-label">平均履约进度</div><div class="summary-value">${average}%</div></section>
+      <section class="card summary-cell"><div class="summary-label">已完成节点</div><div class="summary-value">${done} / ${state.data.length}</div></section>
+      <section class="card summary-cell"><div class="summary-label">逾期节点</div><div class="summary-value" style="color:${COLORS.red}">${late}</div></section>
+    </div>`;
+  }
+
+  const body = route === 'suppliers'
+    ? '<div class="supplier-grid" id="rows"></div>'
+    : `<div class="card table-card"><div class="table-scroll"><table><thead><tr>${TABLES[route].head.map((h) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody id="rows"></tbody></table></div></div>`;
+
+  view.innerHTML = extra + toolbarHTML(route) + body;
+  renderRows(route);
+}
+
+function filteredRows(route) {
+  let rows = state.data || [];
+  const filter = state.filters[route] || 'all';
+  if (filter !== 'all') rows = rows.filter((r) => r.status === filter);
+  const query = (document.getElementById('table-search')?.value || '').trim().toLowerCase();
+  if (query) rows = rows.filter((r) => Object.values(r).some((value) => String(value ?? '').toLowerCase().includes(query)));
+  return rows;
+}
+
+function supplierCard(r) {
+  const color = [COLORS.blue, COLORS.purple, COLORS.teal, COLORS.orange, COLORS.green][r.id % 5];
+  return `<section class="card supplier-card">
+    <div class="supplier-head"><div class="avatar" style="background:${color}1A;color:${color}">${esc(r.name.slice(0, 2))}</div><div><div class="supplier-name">${esc(r.name)}</div><div class="supplier-type">${esc(r.service_type || '未分类')}</div></div></div>
+    <div class="supplier-info">
+      <div><span>联系人</span><b>${esc(r.contact || '—')}</b></div>
+      <div><span>联系电话</span><b>${esc(r.phone || '—')}</b></div>
+      <div><span>资质</span><b>${esc(r.qualification || '—')}</b></div>
+      <div><span>履约评分</span><b>${esc(r.rating ?? '—')} / 5</b></div>
+    </div>
+    <div class="supplier-foot">${pill(r.status)}<div class="row-actions"><button class="text-btn" data-action="edit" data-id="${r.id}">编辑</button><button class="text-btn danger" data-action="delete" data-id="${r.id}">删除</button></div></div>
+  </section>`;
+}
+
+function renderRows(route) {
+  const target = document.getElementById('rows');
+  if (!target) return;
+  const rows = filteredRows(route);
+  if (route === 'suppliers') {
+    target.innerHTML = rows.length ? rows.map(supplierCard).join('') : '<div class="empty">没有匹配的记录</div>';
+    return;
+  }
+  target.innerHTML = rows.length
+    ? rows.map((r) => `<tr>${TABLES[route].row(r)}</tr>`).join('')
+    : `<tr><td colspan="${TABLES[route].head.length}" class="empty">没有匹配的记录</td></tr>`;
+}
+
+function fieldHTML(field, item) {
+  const value = item ? (item[field.key] ?? '') : '';
+  const required = field.required ? '<em>*</em>' : '';
+  const label = `<label>${esc(field.label)}${required}</label>`;
+  const wrapper = (content) => `<div class="field ${field.full ? 'full' : ''}">${label}${content}</div>`;
+  if (field.type === 'select') {
+    const options = field.optionsFrom
+      ? (state.cache[field.optionsFrom] || []).map((x) => `<option value="${x.id}" ${String(value) === String(x.id) ? 'selected' : ''}>${esc(x.name)}</option>`).join('')
+      : (field.options || []).map((x) => `<option value="${esc(x)}" ${String(value) === x ? 'selected' : ''}>${esc(x)}</option>`).join('');
+    const placeholder = field.optionsFrom ? '<option value="">请选择</option>' : '';
+    return wrapper(`<select name="${field.key}">${placeholder}${options}</select>`);
+  }
+  if (field.type === 'textarea') {
+    return wrapper(`<textarea name="${field.key}" placeholder="${esc(field.placeholder || '')}">${esc(value)}</textarea>`);
+  }
+  return wrapper(`<input name="${field.key}" type="${field.type || 'text'}" value="${esc(value)}" placeholder="${esc(field.placeholder || '')}" ${field.type === 'number' ? 'step="any"' : ''}>`);
+}
+
+function closeModal() {
+  document.getElementById('modal-root').innerHTML = '';
+  document.removeEventListener('keydown', onModalKey);
+}
+function onModalKey(event) {
+  if (event.key === 'Escape') closeModal();
+}
+
+function openModal(route, id = null) {
+  if (!FIELDS[route]) { toast('当前模块不支持新增记录'); return; }
+  const item = id ? (state.data || []).find((row) => row.id === Number(id)) : null;
+  const fields = FIELDS[route].map((field) => fieldHTML(field, item)).join('');
+  const root = document.getElementById('modal-root');
+  root.innerHTML = `<div class="overlay"><form class="modal" id="record-form">
+    <div class="modal-head"><h3>${item ? '编辑' : '新增'}${esc(NOUNS[route])}</h3><button type="button" class="close-btn" id="close-modal">×</button></div>
+    <div class="form-grid">${fields}</div>
+    <div class="modal-foot"><button type="button" class="ghost-btn" id="cancel-modal">取消</button><button type="submit" class="primary-btn">保存</button></div>
+  </form></div>`;
+
+  document.getElementById('close-modal').addEventListener('click', closeModal);
+  document.getElementById('cancel-modal').addEventListener('click', closeModal);
+  root.querySelector('.overlay').addEventListener('click', (event) => { if (event.target.classList.contains('overlay')) closeModal(); });
+  document.addEventListener('keydown', onModalKey);
+
+  document.getElementById('record-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const payload = {};
+    FIELDS[route].forEach((field) => { payload[field.key] = form.elements[field.key]?.value ?? ''; });
+    try {
+      await api(id ? `/${route}/${id}` : `/${route}`, { method: id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+      closeModal();
+      toast('已保存');
+      await loadCache();
+      await renderRoute();
+    } catch (err) {
+      toast('保存失败：' + err.message);
+    }
+  });
+}
+
+async function removeRecord(route, id) {
+  if (!window.confirm('确认删除这条记录？删除后无法恢复。')) return;
+  try {
+    await api(`/${route}/${id}`, { method: 'DELETE' });
+    toast('已删除');
+    await loadCache();
+    await renderRoute();
+  } catch (err) {
+    toast('删除失败：' + err.message);
+  }
+}
+
+view.addEventListener('click', (event) => {
+  const chip = event.target.closest('[data-filter]');
+  if (chip) {
+    state.filters[state.route] = chip.dataset.filter;
+    view.querySelectorAll('.chip').forEach((c) => c.classList.toggle('active', c === chip));
+    renderRows(state.route);
+    return;
+  }
+  const button = event.target.closest('[data-action]');
+  if (button) {
+    if (button.dataset.action === 'edit') openModal(state.route, button.dataset.id);
+    if (button.dataset.action === 'delete') removeRecord(state.route, button.dataset.id);
+  }
+});
+view.addEventListener('input', (event) => {
+  if (event.target.id === 'table-search') renderRows(state.route);
+});
+
+function navigate(route) {
+  const hash = '#/' + route;
+  if (location.hash !== hash) history.pushState(null, '', hash);
+  // 切换模块时回到顶部，避免沿用上一个模块的滚动位置导致标题被裁切
+  window.scrollTo(0, 0);
+  renderRoute();
+}
+document.querySelectorAll('.nav-item').forEach((btn) => btn.addEventListener('click', () => navigate(btn.dataset.route)));
+window.addEventListener('popstate', renderRoute);
+window.addEventListener('hashchange', renderRoute);
+document.getElementById('refresh-btn').addEventListener('click', renderRoute);
+document.getElementById('add-btn').addEventListener('click', () => openModal(state.route));
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (!window.confirm('重置为内置示例数据？当前页面的所有改动将被清除。')) return;
+  try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+  location.reload();
+});
+loadCache().then(renderRoute).catch((err) => {
+  view.innerHTML = `<div class="empty">初始化失败：${esc(err.message)}</div>`;
+});
+
+</script>
+
+
+<script>
+/* 表格框内滚动 + 底部拖拉调高，高度记在本机 */
+(function(){
+  var sels = ['.table-scroll'], storeKey = 'rs-h-facility', DEF = 380, MIN = 180, MAX = 900;
+  function bgOf(el){
+    var e = el, c;
+    while(e && e.nodeType === 1){
+      c = getComputedStyle(e).backgroundColor;
+      if(c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent') return c;
+      e = e.parentElement;
+    }
+    return '#fff';
+  }
+  function wrap(el){
+    if(!el || el.__rsDone) return;
+    el.__rsDone = true;
+    el.classList.add('rs-box');
+    var saved = null;
+    try{ saved = localStorage.getItem(storeKey); }catch(e){}
+    el.style.height = (saved && parseInt(saved,10) > 0) ? saved : DEF + 'px';
+    var ths = el.querySelectorAll('thead th');
+    for(var i = 0; i < ths.length; i++){
+      ths[i].style.background = bgOf(ths[i]);
+      ths[i].style.position = 'sticky';
+      ths[i].style.top = '0';
+      ths[i].style.zIndex = '2';
+    }
+    var bar = document.createElement('div');
+    bar.className = 'rs-bar';
+    bar.title = '拖动调整表格高度';
+    bar.innerHTML = '<span></span>';
+    el.parentNode.insertBefore(bar, el.nextSibling);
+    bar.addEventListener('mousedown', function(e){
+      e.preventDefault();
+      var y0 = e.clientY, h0 = el.getBoundingClientRect().height;
+      document.body.style.userSelect = 'none';
+      function mv(ev){
+        var h = Math.max(MIN, Math.min(MAX, h0 + ev.clientY - y0));
+        el.style.height = h + 'px';
+      }
+      function up(){
+        document.removeEventListener('mousemove', mv);
+        document.removeEventListener('mouseup', up);
+        document.body.style.userSelect = '';
+        try{ localStorage.setItem(storeKey, el.style.height); }catch(e){}
+      }
+      document.addEventListener('mousemove', mv);
+      document.addEventListener('mouseup', up);
+    });
+  }
+  function scan(){
+    var bars = document.querySelectorAll('.rs-bar');
+    for(var i = 0; i < bars.length; i++){
+      var p = bars[i].previousElementSibling;
+      if(!p || !p.classList.contains('rs-box')) bars[i].parentNode.removeChild(bars[i]);
+    }
+    for(var j = 0; j < sels.length; j++){
+      var els = document.querySelectorAll(sels[j]);
+      for(var k = 0; k < els.length; k++) wrap(els[k]);
+    }
+  }
+  scan();
+  if(window.MutationObserver){
+    var mo = new MutationObserver(function(){ scan(); });
+    mo.observe(document.body, {childList:true, subtree:true});
+  }
+})();
+</script>
+</body>
+</html>

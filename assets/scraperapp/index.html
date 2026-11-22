@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>网页报表抓取工作台</title>
+<link rel="stylesheet" href="linear.css">
+<style>
+  [hidden] { display: none !important; }
+  /* 主题：默认浅色，可切深色 */
+  :root {
+    --canvas:#f5f5f7; --surface-1:#ffffff; --surface-2:#f5f5f7; --surface-3:#e8e8ed;
+    --hairline:#e5e5ea; --hairline-strong:#d1d1d6;
+    --ink:#1d1d1f; --ink-2:#3a3a3c; --muted:#6e6e73; --tertiary:#8e8e93;
+    --accent:#5e6ad2; --accent-hover:#4f5bd5; --accent-soft:rgba(94,106,210,.10);
+    --success:#1b7a3d; --high:#c20018; --mid:#b25000; --low:#3a7d1e;
+  }
+  html[data-theme="dark"] {
+    --canvas:#010102; --surface-1:#0f1011; --surface-2:#141516; --surface-3:#18191a;
+    --hairline:#23252a; --hairline-strong:#34343a;
+    --ink:#f7f8f8; --ink-2:#d0d6e0; --muted:#8a8f98; --tertiary:#62666d;
+    --accent:#5e6ad2; --accent-hover:#828fff; --accent-soft:rgba(94,106,210,.14);
+    --success:#27a644; --high:#e24b4a; --mid:#ef9f27; --low:#97c459;
+  }
+  html:not([data-theme="dark"]) .check-bar.ok { background:rgba(27,122,61,.10); border-color:rgba(27,122,61,.35); color:#1b7a3d; }
+  html:not([data-theme="dark"]) .verify-row .tick,
+  html:not([data-theme="dark"]) .verify-row .diff { color:#1b7a3d; }
+  html:not([data-theme="dark"]) .env-demo { color:#1b7a3d; background:rgba(27,122,61,.10); border-color:rgba(27,122,61,.35); }
+  .theme-btn { background:none; border:1px solid var(--hairline); border-radius:8px; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; color:var(--muted); flex:none; transition:border-color .2s ease,color .2s ease,background .2s ease; }
+  .theme-btn:hover { border-color:var(--hairline-strong); color:var(--ink); background:var(--surface-2); }
+  .theme-btn svg { width:15px; height:15px; }
+  /* 配置表单（与工具本体同款） */
+  .run-row { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; }
+  .fld { min-width:0; }
+  .fld label { display:block; font-size:11px; color:var(--muted); margin-bottom:6px; }
+  input,select,textarea { font-family:inherit; font-size:13px; padding:8px 11px; border:1px solid var(--hairline); border-radius:8px; background:var(--surface-2); color:var(--ink); outline:none; }
+  input:focus,select:focus,textarea:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(94,106,210,.2); }
+  input::placeholder { color:var(--tertiary); }
+  .notice { margin:14px 0 0; padding:10px 14px; border-radius:8px; background:var(--accent-soft); color:var(--ink-2); font-size:12px; }
+  .notice.error { background:rgba(194,0,24,.08); color:#c20018; }
+  html[data-theme="dark"] .notice.error { background:rgba(226,75,74,.12); color:#f09595; }
+  .subhead { font-size:11px; color:var(--accent-hover); font-weight:600; letter-spacing:.03em; margin:22px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--hairline); }
+  .seg { display:inline-flex; background:var(--surface-2); border:1px solid var(--hairline); border-radius:8px; padding:3px; }
+  .seg button { background:none; border:0; color:var(--muted); padding:6px 14px; font:inherit; font-size:12px; border-radius:6px; cursor:pointer; }
+  .seg button.on { background:var(--surface-3); color:var(--ink); }
+  .grid2 { display:grid; grid-template-columns:repeat(2,1fr); gap:12px 14px; }
+  .grid2 .fld input,.grid2 .fld select { width:100%; }
+  .amt-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .amt-item { display:flex; align-items:center; gap:8px; background:var(--canvas); border:1px solid var(--hairline); border-radius:8px; padding:9px 11px; font-size:12px; color:var(--ink-2); cursor:pointer; }
+  .amt-item input { width:15px; height:15px; padding:0; accent-color:var(--accent); }
+  .amt-item.on { background:var(--accent-soft); border-color:var(--accent); color:var(--ink); }
+  .prev-tbl { background:var(--canvas); border:1px solid var(--hairline); border-radius:8px; padding:12px; max-height:220px; overflow:auto; margin-top:12px; }
+  .prev-tbl table { margin:0; font-size:11px; }
+  .prev-tbl th,.prev-tbl td { padding:6px 9px; }
+  .prev-tbl thead tr { background:var(--surface-3); }
+  @media(max-width:720px){ .amt-grid{grid-template-columns:repeat(2,1fr)} .grid2{grid-template-columns:1fr} }
+  .env-demo { display:inline-flex; align-items:center; gap:7px; font-size:11px; color:#6ccd88; background:rgba(39,166,68,.1); border:1px solid rgba(39,166,68,.35); padding:5px 11px; border-radius:999px; }
+  .env-demo i { width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .check-bar { display:flex; align-items:center; gap:10px; padding:12px 16px; border-radius:8px; background:var(--canvas); border:1px solid var(--hairline); margin-bottom:16px; font-size:12px; }
+  .check-bar.ok { background:rgba(39,166,68,.1); border-color:rgba(39,166,68,.35); color:#6ccd88; }
+  .check-dot { width:7px; height:7px; border-radius:50%; background:currentColor; flex:none; }
+  .check-bar .formula { margin-left:auto; font-variant-numeric:tabular-nums; color:var(--ink-2); }
+  .cfg-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+  .cfg-item { background:var(--canvas); border:1px solid var(--hairline); border-radius:8px; padding:14px 16px; }
+  .cfg-item .k { font-size:11px; color:var(--muted); margin-bottom:6px; }
+  .cfg-item .v { font-size:14px; color:var(--ink); font-weight:500; }
+  .cfg-item .v.mono { font-variant-numeric:tabular-nums; }
+  .verify-list { display:grid; gap:8px; }
+  .verify-row { display:flex; align-items:center; gap:12px; padding:11px 14px; background:var(--canvas); border:1px solid var(--hairline); border-radius:8px; font-size:12px; }
+  .verify-row .tick { color:#6ccd88; font-weight:600; }
+  .verify-row .num { margin-left:auto; font-variant-numeric:tabular-nums; color:var(--ink); }
+  .verify-row .diff { color:#6ccd88; font-variant-numeric:tabular-nums; min-width:64px; text-align:right; }
+  .bar-mini { display:grid; gap:9px; }
+  .bar-mini .row { display:flex; align-items:center; gap:12px; font-size:12px; }
+  .bar-mini .bl { width:180px; flex:none; color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .bar-mini .track { flex:1; height:6px; background:var(--surface-3); border-radius:999px; overflow:hidden; }
+  .bar-mini .fill { height:100%; background:var(--accent); border-radius:999px; width:0; transition:width .7s cubic-bezier(.2,.7,.2,1); }
+  .bar-mini .row:first-child .fill { background:var(--accent-hover); }
+  .bar-mini .bv { width:110px; text-align:right; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .out-link { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 14px; background:var(--canvas); border:1px solid var(--hairline); border-radius:8px; font-size:12px; text-decoration:none; color:var(--ink-2); margin-bottom:8px; }
+  .out-link:hover { border-color:var(--accent); color:var(--ink); }
+  .out-link span:last-child { color:var(--accent); font-size:11px; }
+  .spin { display:inline-block; width:13px; height:13px; border:2px solid rgba(94,106,210,.25); border-top-color:var(--accent); border-radius:50%; animation:sp .7s linear infinite; vertical-align:-2px; }
+  @keyframes sp { to { transform:rotate(360deg); } }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface-2); border:1px solid var(--hairline-strong); color:var(--ink); padding:11px 18px; border-radius:10px; font-size:12px; opacity:0; transition:all .3s ease; z-index:20; pointer-events:none; }
+  .toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar">
+  <div class="side-brand">
+    <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v4H4zM4 10h16v10H4z"/><path d="M8 14h8M8 17h5"/></svg></span>
+    报表抓取
+  </div>
+  <nav class="side-nav">
+    <a href="#s1" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>任务配置</a>
+    <a href="#s2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg>抓取结果</a>
+    <a href="#s3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></svg>客户汇总</a>
+    <a href="#s4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>对账校验</a>
+    <a href="#s5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v3h16v-3"/></svg>导出下载</a>
+    <a href="#s6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>操作记录</a>
+  </nav>
+  <div class="side-foot">报表抓取工作台<br>采集 · 对账 · 汇总</div>
+</aside>
+
+<div class="main-area">
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">报表抓取<span class="brand-sub">配置 · 抓取 · 对账 · 汇总</span></div>
+    <div class="top-actions">
+      <span class="env-demo"><i></i>演示数据</span>
+      <button class="theme-btn" id="themeBtn" title="切换深色/浅色" aria-label="切换深色浅色"></button>
+      <button class="btn-pill" id="run-top">开始抓取</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="intro">
+    <h1>网页报表抓取工作台</h1>
+    <p>配好报表地址和要抓的列，点一下就自动完成抓取、逐列对账、按客户汇总。数字对不上就不交付。当前载入的是演示数据，不连任何真实网站。</p>
+  </section>
+
+  <section class="card step" id="s1">
+    <div class="step-head"><span class="step-no">1</span><h2>任务配置</h2><span class="batch-tag" id="cfg-tag">演示 · 欠费统计表</span></div>
+    <p class="caption">填网址、点「读取字段」，工具把表格读出来，再点选哪列是客户名、哪些列要加总。演示版用内置样本走这套流程，不连真实网站。</p>
+
+    <div class="run-row" style="margin-top:16px">
+      <div class="fld" style="flex:1;min-width:260px"><label>报表页网址</label><input id="gUrl" placeholder="https://example.com/report" value="https://demo.example.com/arrears"></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn-pill" id="gRead" type="button">读取字段</button></div>
+    </div>
+    <div id="gMsg"></div>
+
+    <div id="gResult" hidden>
+      <div class="subhead">① 确认哪一行是表头</div>
+      <div class="fld"><label>表头行（字段名称所在行）</label><select id="gHeader"></select></div>
+      <div class="prev-tbl" id="gPreview"></div>
+
+      <div class="subhead">② 点选要抓的字段</div>
+      <div class="grid2">
+        <div class="fld"><label>按哪一列汇总（客户名称那列）</label><select id="gGroup"></select></div>
+        <div class="fld"><label>用哪一列判断有效行</label><select id="gValid"></select></div>
+      </div>
+      <p class="caption" style="margin:18px 0 10px">哪些列是金额，要加总（点一下选中）</p>
+      <div class="amt-grid" id="gAmounts"></div>
+
+      <div class="subhead">③ 起个名字</div>
+      <div class="grid2">
+        <div class="fld"><label>任务名称</label><input id="gName" value="演示 · 欠费统计表"></div>
+        <div class="fld"><label>账单月份</label><input id="gMonth" value="2026-11"></div>
+      </div>
+      <div class="form-actions" style="display:flex;gap:8px;margin-top:18px;flex-wrap:wrap">
+        <button class="btn-plain" id="gSave" type="button">保存配置</button>
+        <button class="btn-pill" id="run-btn" type="button">开始抓取</button>
+      </div>
+    </div>
+
+    <div class="step-foot" id="stepFootInitial">
+      <span class="caption">先点「读取字段」，再开始抓取。</span>
+      <button class="btn-pill" id="run-btn-2" type="button">开始抓取</button>
+    </div>
+  </section>
+
+  <section class="card step" id="s2" hidden>
+    <div class="step-head"><span class="step-no">2</span><h2>抓取结果</h2><span class="batch-tag" id="s2-tag"></span></div>
+    <div class="check-bar ok" id="check-bar"><span class="check-dot"></span><span id="check-text"></span><span class="formula" id="check-formula"></span></div>
+    <div class="stats" id="stats"></div>
+    <div class="chart-card">
+      <div class="chart-title">客户欠费分布 · 按欠费金额降序（前 12 名）</div>
+      <div class="bar-mini" id="bars"></div>
+    </div>
+    <div class="step-foot"><span class="caption">合计校验通过，明细可不重复地一路对到报表合计。</span></div>
+  </section>
+
+  <section class="card step" id="s3" hidden>
+    <div class="step-head"><span class="step-no">3</span><h2>客户汇总</h2><span class="batch-tag" id="s3-tag"></span></div>
+    <div class="table-wrap">
+      <table class="prio-table">
+        <thead><tr><th class="rank">#</th><th>客户名称</th><th class="num">明细条数</th><th class="num">欠费金额（元）</th><th class="num">占比</th></tr></thead>
+        <tbody id="cust-body"></tbody>
+      </table>
+    </div>
+    <p class="caption" style="margin-top:14px">同名客户自动合并，按欠费金额降序排列。演示数据共 103 户。</p>
+  </section>
+
+  <section class="card step" id="s4" hidden>
+    <div class="step-head"><span class="step-no">4</span><h2>对账校验</h2><span class="batch-tag">逐列核对</span></div>
+    <div class="check-bar ok"><span class="check-dot"></span>明细合计与报表合计逐列比对，差额均为 0.00</div>
+    <div class="verify-list" id="verify-list"></div>
+    <p class="caption" style="margin-top:14px">差一分钱都会中止交付，不落残缺数据。演示数据校验全部通过。</p>
+  </section>
+
+  <section class="card step" id="s5" hidden>
+    <div class="step-head"><span class="step-no">5</span><h2>导出下载</h2></div>
+    <div class="step-foot" style="margin-top:0;margin-bottom:18px">
+      <span class="caption">汇总表与明细表一次导出，CSV 可直接用 Excel 打开。</span>
+    </div>
+    <div id="out-links"></div>
+  </section>
+
+  <section class="card step" id="s6">
+    <div class="step-head"><span class="step-no">6</span><h2>操作记录</h2></div>
+    <div class="audit-list" id="audit-list"></div>
+  </section>
+</main>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="state.js"></script>
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  var $$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var D=window.DEMO;
+  var loaded=false, running=false;
+
+  /* 主题切换：默认浅色，记忆选择 */
+  var ICON_MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+  var ICON_SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  function applyTheme(t){
+    if(t==='dark') document.documentElement.setAttribute('data-theme','dark');
+    else document.documentElement.removeAttribute('data-theme');
+    $('#themeBtn').innerHTML=(t==='dark'?ICON_SUN:ICON_MOON);
+    try{ localStorage.setItem('scraper-theme',t); }catch(e){}
+  }
+  (function initTheme(){
+    var t='light'; try{ t=localStorage.getItem('scraper-theme')||'light'; }catch(e){}
+    applyTheme(t);
+  })();
+  $('#themeBtn').onclick=function(){
+    var now=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';
+    applyTheme(now==='dark'?'light':'dark');
+  };
+
+  function money(n){return '¥'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+  function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2200)}
+
+  function go(id){
+    $$('.side-nav a').forEach(function(a){a.classList.toggle('active',a.getAttribute('href')===id)});
+    $$('.card.step').forEach(function(s){s.hidden=(s.id!==id.slice(1))});
+  }
+  $$('.side-nav a').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();go(a.getAttribute('href'))})});
+
+  function render(){
+    var cust=D.customers, top=cust.slice(0,12), max=top[0].total;
+    $('#s2-tag').textContent=D.rows+' 条明细 · '+cust.length+' 户';
+    $('#check-text').textContent='合计校验通过 · 明细归集 = 对账合计';
+    $('#check-formula').textContent=money(D.total)+' = '+money(D.total)+' · 差额 0.00';
+    $('#stats').innerHTML=
+      '<div class="stat"><div class="stat-label">明细条数</div><div class="stat-value">'+D.rows+'</div></div>'+
+      '<div class="stat"><div class="stat-label">客户数</div><div class="stat-value">'+cust.length+'</div></div>'+
+      '<div class="stat"><div class="stat-label">费项</div><div class="stat-value">'+D.feeItems.length+'</div></div>'+
+      '<div class="stat"><div class="stat-label">欠费合计</div><div class="stat-value small">'+money(D.total)+'</div></div>';
+    $('#bars').innerHTML=top.map(function(c){
+      return '<div class="row"><div class="bl" title="'+c.name+'">'+c.name+'</div><div class="track"><div class="fill" data-w="'+(c.total/max*100).toFixed(1)+'"></div></div><div class="bv">'+money(c.total)+'</div></div>';
+    }).join('');
+
+    $('#s3-tag').textContent=cust.length+' 户客户';
+    $('#cust-body').innerHTML=cust.slice(0,25).map(function(c,i){
+      return '<tr><td class="rank">'+(i+1)+'</td><td>'+c.name+'</td><td class="num">'+c.count+'</td><td class="num">'+money(c.total)+'</td><td class="num">'+(c.total/D.total*100).toFixed(2)+'%</td></tr>';
+    }).join('')+'<tr><td></td><td class="rank" style="color:var(--muted)">… 共 '+cust.length+' 户，下载查看完整清单</td><td class="num">'+D.rows+'</td><td class="num">'+money(D.total)+'</td><td class="num">100%</td></tr>';
+
+    // 对账：按费项拆分演示金额，差额全 0
+    var fees=D.feeItems, parts=[0.42,0.31,0.18,0.09], rows=fees.map(function(f,i){return {name:f,amt:D.total*parts[i]}});
+    $('#verify-list').innerHTML=rows.map(function(r){
+      return '<div class="verify-row"><span class="tick">✓</span><span>'+r.name+'</span><span class="num">明细 '+money(r.amt)+' / 报表 '+money(r.amt)+'</span><span class="diff">差额 0.00</span></div>';
+    }).join('')+'<div class="verify-row"><span class="tick">✓</span><span>合计</span><span class="num">明细 '+money(D.total)+' / 报表 '+money(D.total)+'</span><span class="diff">差额 0.00</span></div>';
+
+    $('#out-links').innerHTML=
+      '<a class="out-link" href="#" id="dl-summary"><span>客户欠费汇总表（'+cust.length+' 户）</span><span>↓ CSV · Excel 可打开</span></a>'+
+      '<a class="out-link" href="#" id="dl-detail"><span>明细归集表（'+D.rows+' 条）</span><span>↓ CSV · Excel 可打开</span></a>';
+    $('#dl-summary').onclick=function(e){e.preventDefault();exportCsv('summary')};
+    $('#dl-detail').onclick=function(e){e.preventDefault();exportCsv('detail')};
+  }
+
+  function csv(rows){return '\ufeff'+rows.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"'}).join(',')}).join('\r\n')}
+  function download(name,content){var b=new Blob([content],{type:'text/csv;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href)}
+  function exportCsv(kind){
+    var cust=D.customers;
+    if(kind==='summary'){
+      var rows=[['序号','客户名称','明细条数','欠费金额（元）']].concat(cust.map(function(c,i){return [i+1,c.name,c.count,c.total.toFixed(2)]}));
+      rows.push(['','合计',D.rows,D.total.toFixed(2)]);
+      download('客户欠费汇总_演示_2026-11.csv',csv(rows));
+    }else{
+      var rows=[['序号','客户名称','费项','金额（元）','账单月']],n=0;
+      var fees=D.feeItems,parts=[0.42,0.31,0.18,0.09];
+      cust.forEach(function(c){
+        fees.forEach(function(f,i){n++;rows.push([n,c.name,f,(c.total*parts[i]).toFixed(2),'2026-11'])});
+      });
+      download('明细归集表_演示_2026-11.csv',csv(rows));
+    }
+    toast('已生成下载文件');
+  }
+
+  function run(){
+    if(running)return;
+    running=true;
+    var b=$('#run-btn'),bt=$('#run-top');
+    b.disabled=true;bt.disabled=true;
+    b.innerHTML='<span class="spin"></span> 抓取中…';
+    setTimeout(function(){
+      loaded=true;running=false;
+      b.disabled=false;bt.disabled=false;b.textContent='重新抓取';
+      render();
+      $$('.bar-mini .fill').forEach(function(f){f.style.width=f.dataset.w+'%'});
+      $('#audit-list').innerHTML=
+        '<div class="audit-item"><strong>15:20:01</strong><span>读取任务配置：演示 · 欠费统计表，账单月 2026-11</span></div>'+
+        '<div class="audit-item"><strong>15:20:02</strong><span>抓取明细 '+D.rows+' 条，识别客户列与 4 个金额列</span></div>'+
+        '<div class="audit-item"><strong>15:20:03</strong><span>逐列对账完成，差额 0.00，校验通过</span></div>'+
+        '<div class="audit-item"><strong>15:20:04</strong><span>按客户合并为 '+D.customers.length+' 户，生成汇总表</span></div>';
+      go('#s2');
+      toast('抓取完成 · 校验通过');
+    },1200);
+  }
+  /* ---------- 快速配置：读字段 → 点选列（演示版用内置样本） ---------- */
+  var G=null;
+  function gmsg(t,k){ $('#gMsg').innerHTML='<div class="notice'+(k==='err'?' error':'')+'">'+t+'</div>'; }
+  function buildSample(){
+    // 用演示数据造一张\"网页表格\"：表头 + 8 行明细
+    var fees=D.feeItems, cust=D.customers.slice(0,8);
+    var header=['序号','客户名称','房号'].concat(fees).concat(['合计']);
+    var rows=[header];
+    cust.forEach(function(c,i){
+      var r=[String(i+1),c.name,'演示楼栋-'+(100+i)], sum=0;
+      var parts=[.42,.31,.18,.09];
+      fees.forEach(function(f,j){ var v=Math.round(c.total*parts[j]*100)/100; r.push(v.toFixed(2)); });
+      r.push(c.total.toFixed(2)); rows.push(r);
+    });
+    return rows;
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]}); }
+  function renderPreview(){
+    var h=G.header;
+    $('#gPreview').innerHTML='<table><thead><tr>'+h.map(function(x){return '<th>'+esc(x)+'</th>'}).join('')+'</tr></thead><tbody>'+
+      G.rows.slice(G.headerRow+1,G.headerRow+7).map(function(r){return '<tr>'+h.map(function(_,i){return '<td>'+esc(r[i]||'')+'</td>'}).join('')+'</tr>'}).join('')+'</tbody></table>';
+    var sel=$('#gHeader'); sel.innerHTML='';
+    G.rows.slice(0,5).forEach(function(r,i){ var o=document.createElement('option');o.value=i;o.textContent='第 '+(i+1)+' 行：'+r.slice(0,5).join(' / ').slice(0,70);sel.appendChild(o); });
+    sel.value=G.headerRow;
+    renderCols();
+  }
+  function renderCols(){
+    var h=G.header;
+    function fill(id,cur,pick){
+      var s=$(id); s.innerHTML='';
+      h.forEach(function(x,i){var o=document.createElement('option');o.value=i;o.textContent=(i+1)+'. '+(x||'（空）');s.appendChild(o)});
+      var v=(cur!=null&&cur<h.length)?cur:(pick&&h.length?1:0); s.value=v; return v;
+    }
+    G.groupCol=fill('#gGroup',G.groupCol,true);
+    fill('#gValid',G.groupCol,false);
+    var box=$('#gAmounts'); box.innerHTML='';
+    h.forEach(function(x,i){
+      var on=(G.amountCols||[]).indexOf(i)>=0;
+      var lab=document.createElement('label'); lab.className='amt-item'+(on?' on':'');
+      lab.innerHTML='<input type="checkbox" value="'+i+'"'+(on?' checked':'')+'>'+esc(x||'（空列）');
+      box.appendChild(lab);
+    });
+    box.querySelectorAll('input').forEach(function(cb){cb.onchange=function(e){
+      var i=+e.target.value,at=G.amountCols.indexOf(i);
+      if(e.target.checked&&at<0)G.amountCols.push(i);
+      if(!e.target.checked&&at>=0)G.amountCols.splice(at,1);
+      e.target.parentElement.classList.toggle('on',e.target.checked);
+    }});
+  }
+  $('#gRead').onclick=function(){
+    var url=$('#gUrl').value.trim();
+    if(!url){ gmsg('请填报表页网址','err'); return; }
+    var b=$('#gRead'); b.disabled=true; b.textContent='读取中…';
+    setTimeout(function(){
+      b.disabled=false; b.textContent='读取字段';
+      var rows=buildSample();
+      G={rows:rows,headerRow:0,header:rows[0].slice(),groupCol:1,
+         amountCols:[3,4,5,6].filter(function(i){return i<rows[0].length})};
+      $('#gResult').hidden=false;
+      $('#stepFootInitial').hidden=true;
+      renderPreview();
+      gmsg('读到 '+rows.length+' 行（演示样本）。确认表头、点选字段后即可抓取。');
+      $('#gResult').scrollIntoView({behavior:'smooth',block:'start'});
+    },600);
+  };
+  $('#gHeader').onchange=function(){
+    G.headerRow=+$('#gHeader').value;
+    G.header=G.rows[G.headerRow].map(function(x){return String(x).trim()});
+    G.groupCol=1; G.amountCols=G.header.map(function(h,i){return i}).filter(function(i){return i>2&&!/合计/.test(G.header[i])});
+    renderPreview();
+  };
+  $('#gSave').onclick=function(){
+    var name=$('#gName').value.trim()||'演示 · 欠费统计表';
+    var month=$('#gMonth').value.trim()||D.month;
+    $('#cfg-tag').textContent=name;
+    D.month=month;
+    toast('配置已保存：'+name);
+  };
+  $('#run-btn-2').onclick=run;
+
+  $('#run-btn').onclick=run;
+  $('#run-top').onclick=function(){ if(!G){go('#s1');$('#gRead').click();return;} run();go('#s2') };
+
+  // 侧栏高亮跟随滚动
+  if('IntersectionObserver' in window){
+    var links=$$('.side-nav a');
+    var obs=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var id='#'+e.target.id;links.forEach(function(x){x.classList.toggle('active',x.getAttribute('href')===id)})})},{rootMargin:'-56px 0px -70% 0px'});
+    $$('.card.step').forEach(function(t){obs.observe(t)});
+  }
+})();
+</script>
+</body>
+</html>

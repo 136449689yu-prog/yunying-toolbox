@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>寻客 · 评论区获客</title>
+<style>
+:root{
+  --canvas:#f5f5f7;--card:#ffffff;--side:#fbfbfd;--line:rgba(0,0,0,.07);--line2:rgba(0,0,0,.12);
+  --ink:#1d1d1f;--ink2:#3a3a3c;--muted:#6e6e73;--tertiary:#9a9aa0;
+  --blue:#0066cc;--blue-soft:rgba(0,102,204,.10);
+  --a:#ff3b30;--b:#ff9f0a;--c:#8e8e93;
+  --shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.03);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+}
+html[data-theme="dark"]{
+  --canvas:#111214;--card:#1c1d20;--side:#17181a;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+  --ink:#f5f5f7;--ink2:#d2d2d7;--muted:#98989f;--tertiary:#6e6e73;
+  --blue:#0a84ff;--blue-soft:rgba(10,132,255,.16);
+  --shadow:0 1px 3px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.2);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+body{font-family:var(--font);background:var(--canvas);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.app{display:flex;min-height:100vh}
+/* 侧栏 */
+.side{position:fixed;inset:0 auto 0 0;width:196px;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:20px 12px;z-index:5}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 10px 26px}
+.brand .mk{width:30px;height:30px;border-radius:9px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
+.brand .mk svg{width:17px;height:17px}
+.brand .nm{font-size:15px;font-weight:600;letter-spacing:-.3px}
+.brand .sb{font-size:10px;color:var(--tertiary);margin-top:-2px}
+.nav{display:grid;gap:3px}
+.nav a{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:9px;color:var(--muted);text-decoration:none;font-size:13px;cursor:pointer;transition:background .2s,color .2s}
+.nav a:hover{background:var(--card);color:var(--ink2)}
+.nav a.active{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.nav a svg{width:16px;height:16px;flex:none;opacity:.8}
+.nav a .badge{margin-left:auto;font-size:10px;font-variant-numeric:tabular-nums;color:var(--muted);background:var(--canvas);border:1px solid var(--line);padding:1px 7px;border-radius:999px}
+.nav a.active .badge{color:var(--blue);background:var(--blue-soft);border-color:transparent}
+.side-foot{margin-top:auto;border-top:1px solid var(--line);padding:14px 10px 0;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.theme-sw{display:inline-flex;background:var(--canvas);border:1px solid var(--line);border-radius:8px;padding:2px}
+.theme-sw button{border:0;background:none;font:inherit;font-size:11px;color:var(--muted);padding:5px 9px;border-radius:6px;cursor:pointer}
+.theme-sw button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.setting{font-size:11px;color:var(--tertiary);display:flex;align-items:center;gap:5px}
+/* 主区 */
+.main{margin-left:196px;flex:1;min-width:0}
+.top{background:var(--card);border-bottom:1px solid var(--line);padding:18px 28px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:4}
+.top h1{font-size:19px;font-weight:600;letter-spacing:-.4px}
+.top .meta{font-size:11px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.top .meta .dot{width:6px;height:6px;border-radius:50%;background:var(--b)}
+.top .meta b{font-weight:600;color:var(--ink2)}
+.top-btn{background:var(--blue);color:#fff;border:0;border-radius:10px;padding:10px 18px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:opacity .2s,transform .2s}
+.top-btn:hover{opacity:.9}
+.top-btn:active{transform:scale(.97)}
+.top-btn:disabled{opacity:.5;cursor:default}
+.content{padding:24px 28px 60px;max-width:1180px}
+.grid{display:grid;grid-template-columns:1.6fr 1fr;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+.card h2{font-size:14px;font-weight:600;letter-spacing:-.2px;margin-bottom:4px}
+.card .sub{font-size:11px;color:var(--muted)}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.chip{font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--canvas);color:var(--ink2);cursor:pointer;transition:all .2s}
+.chip:hover{border-color:var(--line2)}
+.chip.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue);font-weight:500}
+.field{width:100%;min-height:96px;resize:vertical;font-family:var(--font);font-size:13px;line-height:1.6;padding:13px 15px;border:1px solid var(--line2);border-radius:11px;background:var(--canvas);color:var(--ink);outline:none;margin-top:10px}
+.field:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.saved{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);margin-top:10px}
+.saved .ck{width:14px;height:14px;border-radius:50%;background:var(--blue);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:9px}
+.btn{border:0;border-radius:9px;padding:9px 15px;font:inherit;font-size:12px;font-weight:500;cursor:pointer}
+.btn.blue{background:var(--blue-soft);color:var(--blue)}
+.btn.blue:hover{background:rgba(0,102,204,.18)}
+.btn.ghost{background:var(--canvas);color:var(--ink2);border:1px solid var(--line)}
+.btn.gray{background:var(--card);color:var(--muted);border:1px solid var(--line)}
+.row-end{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px}
+.plat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.plat button{border:1px solid var(--line2);background:var(--canvas);border-radius:10px;padding:12px;font:inherit;font-size:12px;color:var(--ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s}
+.plat button.on{border-color:var(--blue);background:var(--blue-soft);color:var(--blue);font-weight:500}
+.plat svg{width:15px;height:15px;flex:none}
+.setting{display:inline-flex;align-items:center;gap:5px}
+/* 右侧统计 */
+.stat-line{display:flex;justify-content:space-between;font-size:11px;margin:14px 0 6px;color:var(--ink2)}
+.stat-line:first-child{margin-top:8px}
+.prog{height:6px;border-radius:999px;background:var(--canvas);overflow:hidden}
+.prog i{display:block;height:100%;border-radius:999px;width:0;transition:width .8s cubic-bezier(.2,.7,.2,1)}
+.log{margin-top:16px;padding:12px;background:var(--canvas);border-radius:10px;font-size:11px;color:var(--muted);line-height:1.8;min-height:74px;max-height:110px;overflow:auto}
+.log b{color:var(--ink2);font-weight:500}
+/* 客户列表 */
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{font-size:12px;padding:7px 13px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer}
+.tab.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+.tier{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;padding:3px 9px;border-radius:999px}
+.tier.A{color:var(--a);background:rgba(255,59,48,.1)}
+.tier.B{color:var(--b);background:rgba(255,159,10,.12)}
+.tier.C{color:var(--c);background:rgba(142,142,147,.12)}
+.tier i{width:6px;height:6px;border-radius:50%;background:currentColor}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;color:var(--tertiary);font-weight:400;font-size:11px;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 10px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+tbody tr{cursor:pointer;transition:background .2s}
+tbody tr:hover{background:var(--canvas)}
+.plat-tag{font-size:10px;color:var(--muted);background:var(--canvas);border:1px solid var(--line);padding:2px 7px;border-radius:5px}
+.comment{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink2)}
+.score{font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink)}
+/* 话术 */
+.talk{background:var(--canvas);border:1px solid var(--line);border-radius:11px;padding:14px;margin-top:12px;font-size:12px;line-height:1.7;color:var(--ink2)}
+.talk .who{font-size:11px;color:var(--muted);margin-bottom:6px}
+/* 引导 */
+.step{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+.step:last-child{border:0}
+.step .n{width:28px;height:28px;border-radius:8px;background:var(--blue-soft);color:var(--blue);font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none}
+.step h3{font-size:13px;font-weight:600;margin-bottom:3px}
+.step p{font-size:12px;color:var(--muted)}
+/* toast */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--ink);color:var(--card);padding:11px 20px;border-radius:10px;font-size:12px;opacity:0;transition:all .3s;z-index:30;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(0,102,204,.25);border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(max-width:900px){.app{flex-direction:column}.grid{grid-template-columns:1fr}.side{position:static;width:auto;flex-direction:row;align-items:center;padding:10px 14px;border-right:0;border-bottom:1px solid var(--line)}.brand{padding:0 12px 0 0}.nav{display:flex;overflow-x:auto}.nav a{white-space:nowrap}.side-foot{display:none}.main{margin-left:0;width:100%}.content{padding:18px 16px 40px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand"><span class="mk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="m16 16 5 5"/></svg></span><div><div class="nm">寻客</div><div class="sb">客户藏在评论里</div></div></div>
+  <nav class="nav">
+    <a href="#s1" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9.5l-4.2 1.9L12 16l-1.8-4.6L6 9.5l4.2-1.9L12 3Z"/></svg>今日发现<span class="badge">107</span></a>
+    <a href="#s2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="m17 11 2 2 4-4"/></svg>全部客户<span class="badge">172</span></a>
+    <a href="#s3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5 5h14l3 7v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6l3-7Z"/></svg>收件箱<span class="badge" id="inboxBadge">0</span></a>
+    <a href="#s4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 .2c0 1.8-2.5 2.3-2.5 3.8"/><path d="M12 17h.01"/></svg>入门</a>
+  </nav>
+  <div class="side-foot">
+    <div class="theme-sw"><button id="tLight" class="on">浅色</button><button id="tDark">深色</button></div>
+    <span class="setting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.01a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>设置</span>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="top">
+    <div><h1 id="topTitle">让每条评论都变成客户</h1>
+      <div class="meta" id="topMeta"><span class="dot"></span><b>A 13</b> · <b>B 94</b> · <b>C 65</b> · 172 位还没联系 · 11 月 19 日 · 星期四</div>
+    </div>
+    <button class="top-btn" id="topRun">开始找客户</button>
+  </header>
+
+  <div class="content">
+    <!-- 今日发现 -->
+    <section id="s1">
+      <div class="card" style="margin-bottom:18px">
+        <div class="sec-head"><div><h2>一键找客户</h2><div class="sub">最多翻 150 条帖子 · 只看 7 天内</div></div></div>
+        <div class="chips">
+          <span class="sub" style="align-self:center;margin-right:2px">每个平台翻帖</span>
+          <span class="chip" data-n="5">5 帖</span><span class="chip" data-n="10">10 帖</span><span class="chip" data-n="20">20 帖</span><span class="chip on" data-n="50">50 帖</span>
+          <span class="sub" style="align-self:center;margin:0 2px 0 14px">只看几天内</span>
+          <span class="chip" data-d="3">3 天</span><span class="chip on" data-d="7">7 天</span><span class="chip" data-d="15">15 天</span><span class="chip" data-d="30">30 天</span>
+        </div>
+        <div class="sub">按帖子计数 · 没写日期的会保留</div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <h2>行业描述</h2><div class="sub">词库和搜索词都照这段话来配</div>
+          <textarea class="field" id="industry">我在广州白云区圣地大厦有很多商铺出租和写字楼出租，想找想开店的人</textarea>
+          <div class="saved"><span class="ck">✓</span>已保存</div>
+          <div class="row-end"><span class="sub">不想手动配词，点「智能保存」留底。</span><button class="btn blue" id="smartSave">＋ 智能保存</button></div>
+          <div class="sec-head" style="margin:22px 0 0"><div><h2>平台选择</h2><div class="sub">至少选一个</div></div></div>
+          <div class="plat">
+            <button class="on" data-p="抖音"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l10-2v11"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="15" r="2.5"/></svg>抖音</button>
+            <button class="on" data-p="快手"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m10 8.5 5 3.5-5 3.5v-7Z"/></svg>快手</button>
+            <button class="on" data-p="小红书"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5Z"/><path d="M4 19a2 2 0 0 1 2-2h13"/></svg>小红书</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2>AI 后台</h2><div class="sub" id="aiState" style="color:#1b7a3d">● 已完成</div>
+          <div class="stat-line"><span>公开信息 · 今天看过</span><b class="score" id="statPosts">30</b></div><div class="prog"><i id="barPosts" style="background:var(--blue)"></i></div>
+          <div class="stat-line"><span>入库客户</span><b class="score" id="statCust">172</b></div><div class="prog"><i id="barCust" style="background:#30a864"></i></div>
+          <div class="stat-line"><span>赢得联系</span><b class="score" id="statContact">107</b></div><div class="prog"><i id="barContact" style="background:var(--b)"></i></div>
+          <div class="log" id="log"><b>实时日志</b><br>等待任务开始…</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="sec-head"><div><h2>最近找到的客户</h2><div class="sub">最新 4 条 · 库存 172 位</div></div><button class="btn gray" onclick="go('#s2')">查看全部 →</button></div>
+        <table><thead><tr><th>来源</th><th>评论 / 线索</th><th>意向</th><th>时间</th></tr></thead><tbody id="recentBody"></tbody></table>
+      </div>
+    </section>
+
+    <!-- 全部客户 -->
+    <section id="s2" hidden>
+      <div class="card">
+        <div class="sec-head"><div><h2>全部客户</h2><div class="sub">按租赁意向分档 · A 想租排最前</div></div></div>
+        <div class="tabs"><span class="tab on" data-f="all">全部 172</span><span class="tab" data-f="A">A 档 13</span><span class="tab" data-f="B">B 档 94</span><span class="tab" data-f="C">C 档 65</span></div>
+        <div class="table-wrap" style="overflow-x:auto"><table><thead><tr><th>来源</th><th>客户线索</th><th>意向</th><th>分数</th><th>时间</th><th></th></tr></thead><tbody id="custBody"></tbody></table></div>
+        <div id="talkBox"></div>
+      </div>
+    </section>
+
+    <!-- 收件箱 -->
+    <section id="s3" hidden>
+      <div class="card">
+        <div class="sec-head"><div><h2>收件箱</h2><div class="sub">已生成并发送的话术</div></div></div>
+        <div id="inbox"><div class="empty" style="text-align:center;color:var(--muted);padding:44px 0">还没有发送记录。去「全部客户」点一条客户，生成话术试试。</div></div>
+      </div>
+    </section>
+
+    <!-- 入门 -->
+    <section id="s4" hidden>
+      <div class="card">
+        <div class="sec-head"><div><h2>三步上手</h2><div class="sub">寻客自动跑完整流程</div></div></div>
+        <div class="step"><div class="n">1</div><div><h3>写下你要找什么样的客户</h3><p>在「今日发现」填行业描述、选平台和翻帖天数，点智能保存。</p></div></div>
+        <div class="step"><div class="n">2</div><div><h3>点「开始找客户」</h3><p>自动翻近期评论，AI 判断租赁意向——想租铺位的排前，先联系谁一目了然。</p></div></div>
+        <div class="step"><div class="n">3</div><div><h3>按分档跟进</h3><p>点客户行生成打招呼话术，点一下发送，联系人和来源都记进表里。</p></div></div>
+        <p class="sub" style="margin-top:18px">本页为交互演示，数据均为示例；正式使用以安装包内说明为准。</p>
+      </div>
+    </section>
+  </div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)},$$=function(s){return [].slice.call(document.querySelectorAll(s))};
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},2000)}
+
+  /* 主题 */
+  function theme(t){if(t==='dark')document.documentElement.setAttribute('data-theme','dark');else document.documentElement.removeAttribute('data-theme');$('#tLight').classList.toggle('on',t!=='dark');$('#tDark').classList.toggle('on',t==='dark');try{localStorage.setItem('xunke-theme',t)}catch(e){}}
+  (function(){var t='light';try{t=localStorage.getItem('xunke-theme')||'light'}catch(e){}theme(t)})();
+  $('#tLight').onclick=function(){theme('light')};$('#tDark').onclick=function(){theme('dark')};
+
+  /* 菜单切换 */
+  var TITLES={'#s1':['让每条评论都变成客户','dot'],'#s2':['全部客户','按租赁意向分档，先看想租的 A 档'],'#s3':['收件箱','已生成并发送的话术'],'#s4':['入门','三步上手']};
+  function go(id){$$('.nav a').forEach(function(a){a.classList.toggle('active',a.getAttribute('href')===id)});$$('.content section').forEach(function(s){s.hidden=(s.id!==id.slice(1))});window.scrollTo({top:0,behavior:reduce?'auto':'smooth'})}
+  window.go=go;
+  $$('.nav a').forEach(function(a){a.onclick=function(e){e.preventDefault();go(a.getAttribute('href'))}});
+
+  /* 客户数据（演示）：做商铺租赁，找想租铺位开店的人。A 想租 / B 有意 / C 待观察 */
+  /* 线索均为“想租铺的人”发的评论；出租/转让自己铺位的不属于客户，不入库 */
+  var seeds=[
+    ['小红书','想在白云区租个铺位开奶茶店，有合适的吗','A',96],
+    ['抖音','求租临街商铺，做餐饮，面积100平左右','A',94],
+    ['快手','想租个门面开便利店，长期租，位置好就行','A',92],
+    ['小红书','找铺位，圣地大厦附近有出租的吗？急','A',90],
+    ['抖音','准备开个烘焙店，想租个50平左右的小铺','A',88],
+    ['快手','求租商铺做美甲店，白云区优先','A',87],
+    ['小红书','想在白云区找铺面开咖啡店，预算2万内','A',85],
+    ['抖音','租铺开店，需要能办餐饮执照的铺位','A',84],
+    ['快手','有两万预算，想租个小铺做小吃','A',82],
+    ['小红书','想租个铺子做服装，人流量大一点','A',81],
+    ['抖音','广州白云区有铺位出租吗，想开家生鲜店','A',79],
+    ['快手','求租门面，做宠物店，能养宠物的那种','A',77],
+    ['小红书','想在写字楼附近租铺位做快餐','A',76],
+
+    ['抖音','想开店但还没定做什么，先看看铺位','B',74],
+    ['小红书','咨询一下商铺租金，圣地区域什么价','B',72],
+    ['快手','关注很久了，想了解下有没有小面积铺','B',70],
+    ['抖音','想租铺但还在看地段，后期联系','B',68],
+    ['小红书','想开个花店，不知道租铺要注意什么','B',66],
+    ['快手','有没有60平左右的铺，先了解一下','B',64],
+    ['抖音','朋友想开店，让我帮忙问问铺位','B',62],
+    ['小红书','收藏了，过段时间再联系看铺','B',60],
+    ['快手','想租铺做电商仓储，要求不高','B',58],
+    ['抖音','咨询过租金，还在考虑中','B',56],
+
+    ['小红书','先收藏，以后可能开店','C',48],
+    ['快手','路过看看，暂时没计划','C',42],
+    ['抖音','这个价格有点高，再看看','C',38],
+    ['小红书','想租但预算不够，以后再说','C',32],
+    ['快手','只是好奇问问租金','C',28]
+  ];
+  var platforms=['抖音','快手','小红书'];
+  var TIMES=['今天','2 小时前','昨天','昨天','2 天前','3 天前','4 天前','5 天前','6 天前','1 周前'];
+  /* 按 A13 / B94 / C65 生成 172 条；不足的种子循环，时间/来源错开 */
+  function customers(){
+    var out=[],groups=[['A',13],['B',94],['C',65]],idx=0;
+    groups.forEach(function(g){
+      var pool=seeds.filter(function(s){return s[2]===g[0]});
+      for(var i=0;i<g[1];i++){
+        var s=pool[i%pool.length];
+        out.push({
+          platform:s[0], comment:s[1], tier:g[0],
+          score:Math.max(20,s[3]-Math.floor(i/pool.length)*2),
+          time:TIMES[idx%TIMES.length],
+          name:'客户'+(100+idx)
+        });
+        idx++;
+      }
+    });
+    return out;
+  }
+  var ALL=customers();
+  /* 演示表格取各档前几条，保证点 A/B/C 筛选都能看到内容 */
+  var visible=ALL.filter(function(c){return c.tier==='A'}).slice(0,4)
+    .concat(ALL.filter(function(c){return c.tier==='B'}).slice(0,3))
+    .concat(ALL.filter(function(c){return c.tier==='C'}).slice(0,3));
+  var filter='all';
+
+  function tierTag(t){return '<span class="tier '+t+'"><i></i>'+t+' 档</span>'}
+  function renderRecent(){
+    $('#recentBody').innerHTML=ALL.slice(0,4).map(function(c){
+      return '<tr><td><span class="plat-tag">'+c.platform+'</span></td><td class="comment">'+esc(c.comment)+'</td><td>'+tierTag(c.tier)+'</td><td class="sub">'+c.time+'</td></tr>'
+    }).join('');
+  }
+  function renderCust(){
+    var list=filter==='all'?visible:visible.filter(function(c){return c.tier===filter});
+    $('#custBody').innerHTML=list.map(function(c,i){
+      return '<tr data-i="'+visible.indexOf(c)+'"><td><span class="plat-tag">'+c.platform+'</span></td><td class="comment">'+esc(c.comment)+'</td><td>'+tierTag(c.tier)+'</td><td class="score">'+c.score+'</td><td class="sub">'+c.time+'</td><td class="sub">生成话术 ›</td></tr>'
+    }).join('')||'<tr><td colspan="6" class="empty">这一档暂无演示客户</td></tr>';
+  }
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  renderRecent();renderCust();
+
+  /* 筛选 */
+  $$('.tab').forEach(function(t){t.onclick=function(){$$('.tab').forEach(function(x){x.classList.remove('on')});t.classList.add('on');filter=t.dataset.f;renderCust()}});
+
+  /* 生成话术 → 发送 → 收件箱 */
+  var inbox=[];
+  $('#custBody').onclick=function(e){
+    var tr=e.target.closest('tr[data-i]'); if(!tr)return;
+    var c=visible[+tr.dataset.i];
+    var talk='你好，看到你在' + c.platform + '上留言「' + c.comment + '」。我们在广州白云区圣地大厦有商铺和写字楼出租，面积户型都有，方便的话发你一份铺位资料和租金表，你看看有没有合适的？';
+    $('#talkBox').innerHTML='<div class="talk"><div class="who">给 '+esc(c.name)+' · '+c.platform+' · '+tierTag(c.tier)+' 的话术</div>'+esc(talk)+'<div class="row-end"><span class="sub">按评论自动生成，可按需修改后发送</span><button class="btn blue" id="sendBtn">一键发送</button></div></div>';
+    $('#talkBox').scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'});
+    $('#sendBtn').onclick=function(){
+      inbox.unshift({c:c,text:talk,time:'刚刚'});
+      $('#inboxBadge').textContent=inbox.length;
+      renderInbox();
+      $('#talkBox').innerHTML='';
+      toast('已发送，联系人和来源已记入收件箱');
+    };
+  };
+  function renderInbox(){
+    $('#inbox').innerHTML=inbox.map(function(x){
+      return '<div class="talk"><div class="who">'+esc(x.c.name)+' · '+x.c.platform+' · '+x.time+' · '+tierTag(x.c.tier)+'</div>'+esc(x.text)+'</div>'
+    }).join('')||'<div class="empty" style="text-align:center;color:var(--muted);padding:44px 0">还没有发送记录。去「全部客户」点一条客户，生成话术试试。</div>';
+  }
+
+  /* 选帖数 / 天数 / 平台 */
+  $$('.chip[data-n]').forEach(function(c){c.onclick=function(){$$('.chip[data-n]').forEach(function(x){x.classList.remove('on')});c.classList.add('on')}});
+  $$('.chip[data-d]').forEach(function(c){c.onclick=function(){$$('.chip[data-d]').forEach(function(x){x.classList.remove('on')});c.classList.add('on')}});
+  $$('.plat button').forEach(function(b){b.onclick=function(){b.classList.toggle('on');if(!$$('.plat button.on').length){b.classList.add('on');toast('至少选一个平台')}}});
+  $('#smartSave').onclick=function(){toast('行业描述已智能保存，搜索词已更新')};
+
+  /* 开始找客户（演示） */
+  var running=false;
+  function run(){
+    if(running)return;running=true;
+    var btn=$('#topRun');btn.disabled=true;btn.innerHTML='<span class="spin"></span> 正在找客户…';
+    $('#aiState').style.color='var(--muted)';$('#aiState').textContent='● 运行中';
+    $('#log').innerHTML='<b>实时日志</b><br>读取行业描述与搜索词…';
+    [['barPosts','statPosts','30',92],['barCust','statCust','172',100],['barContact','statContact','107',64]].forEach(function(x){$('#'+x[0]).style.width='0%'});
+    var steps=[
+      {t:400,html:'<b>实时日志</b><br>读取行业描述与搜索词…<br>连接 3 个平台，开始翻评论…'},
+      {t:900,html:'<b>实时日志</b><br>连接 3 个平台，开始翻评论…<br>已翻 30 条公开信息，识别意向中…'},
+      {t:1500,html:'<b>实时日志</b><br>已翻 30 条公开信息，识别意向中…<br>AI 分档完成：A 13 · B 94 · C 65',bar:true},
+      {t:2100,html:'<b>实时日志</b><br>AI 分档完成：A 13 · B 94 · C 65<br>入库 172 位客户，生成话术 107 条',done:true}
+    ];
+    steps.forEach(function(s){
+      setTimeout(function(){
+        $('#log').innerHTML=s.html;
+        if(s.bar){$('#barPosts').style.width='92%';$('#barCust').style.width='100%';$('#barContact').style.width='64%'}
+        if(s.done){
+          running=false;btn.disabled=false;btn.textContent='再找一次';
+          $('#aiState').style.color='#1b7a3d';$('#aiState').textContent='● 已完成';
+          renderRecent();renderCust();toast('找客户完成 · 新增客户已入库');
+        }
+      },reduce?0:s.t);
+    });
+    if(reduce){setTimeout(function(){running=false;btn.disabled=false;btn.textContent='再找一次';$('#aiState').style.color='#1b7a3d';$('#aiState').textContent='● 已完成';$('#barPosts').style.width='92%';$('#barCust').style.width='100%';$('#barContact').style.width='64%';$('#log').innerHTML='<b>实时日志</b><br>AI 分档完成：A 13 · B 94 · C 65<br>入库 172 位客户，生成话术 107 条'},100)}
+  }
+  $('#topRun').onclick=run;
+  // 初始进度条
+  setTimeout(function(){$('#barPosts').style.width='92%';$('#barCust').style.width='100%';$('#barContact').style.width='64%'},300);
+})();
+</script>
+</body>
+</html>

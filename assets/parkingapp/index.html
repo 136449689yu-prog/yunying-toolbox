@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>智慧停车运维工作台</title>
+<link rel="stylesheet" href="style.css?v=20261122">
+<style>
+/* 可拖拉表格框：框内滚动 + 底部拖拉条 */
+.rs-box{position:relative;overflow:auto;height:380px;min-height:180px;max-height:900px;overscroll-behavior:contain}
+.rs-bar{height:14px;cursor:ns-resize;display:flex;align-items:center;justify-content:center;margin-top:3px;user-select:none;border-top:1px solid rgba(127,127,127,.22)}
+.rs-bar span{width:38px;height:3px;border-radius:2px;background:rgba(127,127,127,.35)}
+.rs-bar:hover span{background:rgba(127,127,127,.6)}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 16V8h4.5a2.5 2.5 0 0 1 0 5H9"/></svg></span><span>智慧停车</span></div>
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-view="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><span>概览</span></button>
+      <button class="nav-item" data-view="equipment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="3"/><path d="M9 12h6M12 9v6"/></svg><span>设施设备</span></button>
+      <button class="nav-item" data-view="repair"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.8-.7-.7-2.8 2.8-2.8Z"/></svg><span>报修工单</span></button>
+      <button class="nav-item" data-view="revenue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg><span>收入分析</span></button>
+      <button class="nav-item" data-view="parking"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 16V8h4.5a2.5 2.5 0 0 1 0 5H9"/></svg><span>车位使用</span></button>
+    </nav>
+    <div class="side-foot">运维工作台<br><span id="today-label"></span></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1 id="page-title">运营概览</h1>
+        <p class="subtitle" id="page-sub">设施设备与停车收入，一屏掌握</p>
+      </div>
+      <div class="top-actions" id="top-actions"></div>
+    </header>
+
+    <section class="view" id="view-overview">
+      <div class="kpi-grid" id="kpi-grid"></div>
+      <div class="card-grid">
+        <div class="card span-2">
+          <div class="card-head"><h2>近 14 天收入趋势</h2><span class="tag">单位：元</span></div>
+          <div id="chart-revenue-line" class="chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>设备状态</h2></div>
+          <div id="chart-equipment-donut" class="chart"></div>
+          <div id="equip-legend" class="legend"></div>
+        </div>
+        <div class="card span-2">
+          <div class="card-head"><h2>车位使用概览</h2><span class="tag">近 7 日逐小时平均</span></div>
+          <div id="chart-overview-parking" class="chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>待办提醒</h2></div>
+          <div id="todo-list" class="todo-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view hidden" id="view-equipment">
+      <div class="filterbar" id="equipment-filter"></div>
+      <div class="card table-card"><div id="equipment-table"></div></div>
+    </section>
+
+    <section class="view hidden" id="view-repair">
+      <div class="filterbar" id="repair-filter"></div>
+      <div class="card table-card"><div id="repair-table"></div></div>
+    </section>
+
+    <section class="view hidden" id="view-revenue">
+      <div class="segmented" id="revenue-mode">
+        <button class="seg active" data-mode="daily">按日</button>
+        <button class="seg" data-mode="monthly">按月</button>
+      </div>
+      <div class="card-grid">
+        <div class="card span-2">
+          <div class="card-head"><h2 id="trend-title">收入趋势</h2><span class="tag" id="trend-tag"></span></div>
+          <div id="chart-trend" class="chart tall"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>收入来源构成</h2></div>
+          <div id="chart-source-donut" class="chart"></div>
+          <div id="source-legend" class="legend"></div>
+        </div>
+        <div class="card span-2">
+          <div class="card-head"><h2>各来源订单量</h2><span class="tag">近 90 天合计</span></div>
+          <div id="chart-source-orders" class="chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>关键指标</h2></div>
+          <div id="revenue-stats" class="stat-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view hidden" id="view-parking">
+      <div class="kpi-grid" id="parking-kpi"></div>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-head"><h2>车位使用构成</h2><span class="tag">近 7 日平均</span></div>
+          <div id="chart-parking-donut" class="chart"></div>
+          <div id="parking-donut-legend" class="legend"></div>
+        </div>
+        <div class="card span-2">
+          <div class="card-head"><h2>逐小时车位使用情况</h2><span class="tag">近 7 日同一时段平均</span></div>
+          <div id="chart-occupancy" class="chart"></div>
+          <div id="occupancy-legend" class="legend"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>车位概况</h2></div>
+          <div id="parking-stats" class="stat-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>时段摘要</h2></div>
+          <div id="parking-hour-stats" class="stat-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h2>周转口径</h2></div>
+          <div id="parking-method" class="stat-list"></div>
+        </div>
+        <div class="card span-3">
+          <div class="card-head"><h2>车位明细</h2><span class="tag" id="space-day-tag"></span></div>
+          <div class="filterbar">
+            <span>时段</span>
+            <select id="space-hour" aria-label="选择时段"></select>
+            <span class="space-summary" id="space-summary"></span>
+          </div>
+          <div id="space-grid" class="space-grid"></div>
+          <div id="space-legend" class="legend"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="modal-wrap hidden" id="modal-wrap">
+  <div class="modal">
+    <div class="modal-head"><h2 id="modal-title">新建报修</h2><button class="icon-btn" id="modal-close">×</button></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+<div id="toast" class="toast hidden"></div>
+<script src="snapshot.js?v=20261122"></script>
+<script src="shim.js?v=20261122"></script>
+<script src="app.js?v=20261122"></script>
+
+
+<script>
+/* 表格框内滚动 + 底部拖拉调高，高度记在本机 */
+(function(){
+  var sels = ['#equipment-table','#repair-table'], storeKey = 'rs-h-parking', DEF = 380, MIN = 180, MAX = 900;
+  function bgOf(el){
+    var e = el, c;
+    while(e && e.nodeType === 1){
+      c = getComputedStyle(e).backgroundColor;
+      if(c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent') return c;
+      e = e.parentElement;
+    }
+    return '#fff';
+  }
+  function wrap(el){
+    if(!el || el.__rsDone) return;
+    el.__rsDone = true;
+    el.classList.add('rs-box');
+    var saved = null;
+    try{ saved = localStorage.getItem(storeKey); }catch(e){}
+    el.style.height = (saved && parseInt(saved,10) > 0) ? saved : DEF + 'px';
+    var ths = el.querySelectorAll('thead th');
+    for(var i = 0; i < ths.length; i++){
+      ths[i].style.background = bgOf(ths[i]);
+      ths[i].style.position = 'sticky';
+      ths[i].style.top = '0';
+      ths[i].style.zIndex = '2';
+    }
+    var bar = document.createElement('div');
+    bar.className = 'rs-bar';
+    bar.title = '拖动调整表格高度';
+    bar.innerHTML = '<span></span>';
+    el.parentNode.insertBefore(bar, el.nextSibling);
+    bar.addEventListener('mousedown', function(e){
+      e.preventDefault();
+      var y0 = e.clientY, h0 = el.getBoundingClientRect().height;
+      document.body.style.userSelect = 'none';
+      function mv(ev){
+        var h = Math.max(MIN, Math.min(MAX, h0 + ev.clientY - y0));
+        el.style.height = h + 'px';
+      }
+      function up(){
+        document.removeEventListener('mousemove', mv);
+        document.removeEventListener('mouseup', up);
+        document.body.style.userSelect = '';
+        try{ localStorage.setItem(storeKey, el.style.height); }catch(e){}
+      }
+      document.addEventListener('mousemove', mv);
+      document.addEventListener('mouseup', up);
+    });
+  }
+  function scan(){
+    var bars = document.querySelectorAll('.rs-bar');
+    for(var i = 0; i < bars.length; i++){
+      var p = bars[i].previousElementSibling;
+      if(!p || !p.classList.contains('rs-box')) bars[i].parentNode.removeChild(bars[i]);
+    }
+    for(var j = 0; j < sels.length; j++){
+      var els = document.querySelectorAll(sels[j]);
+      for(var k = 0; k < els.length; k++) wrap(els[k]);
+    }
+  }
+  scan();
+  if(window.MutationObserver){
+    var mo = new MutationObserver(function(){ scan(); });
+    mo.observe(document.body, {childList:true, subtree:true});
+  }
+})();
+</script>
+</body>
+</html>

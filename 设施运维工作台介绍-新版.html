@@ -139,6 +139,14 @@ h2.sec{font-size:clamp(32px,4.2vw,48px);line-height:1.1;letter-spacing:-.022em}
 .step .n{font-size:14px;font-weight:600;color:var(--blue);margin-bottom:12px}
 .step h3{font-size:21px;margin-bottom:10px}
 .step p{font-size:17px;line-height:1.47;color:var(--muted)}
+.step .badge{font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border-radius:999px;padding:4px 10px;display:inline-block;margin-bottom:16px}
+.step.feat{border-top:2px solid var(--blue)}
+.step.feat .badge{color:#fff;background:var(--blue)}
+.step .sdesc{font-size:15px;line-height:1.6;color:var(--muted)}
+.step .slist{list-style:none;margin:14px 0 0;display:grid;gap:8px}
+.step .slist li{position:relative;padding-left:16px;font-size:13px;line-height:1.55;color:var(--muted)}
+.step .slist li:before{content:"";position:absolute;left:0;top:7px;width:6px;height:6px;border-radius:2px;background:var(--blue);opacity:.75}
+.step .sfit{margin-top:18px;padding-top:12px;border-top:1px solid var(--hair);font-size:12px;color:var(--muted2)}
 
 /* 团队深色区 */
 .team{background:#272729;color:#fff;padding:100px 0;text-align:center}
@@ -261,29 +269,11 @@ section[id]{scroll-margin-top:60px}
     </div>
   </div>
 </div></section><section class="block" id="use"><div class="wrap">
-  <p class="eyebrow rv">用法</p><h2 class="sec rv">三步就能用起来。</h2>
+  <p class="eyebrow rv">用法</p><h2 class="sec rv">三种用法，<br>照你团队大小挑。</h2>
   <div class="steps">
-    <div class="step rv"><div class="n">01</div><h3>放进团队空间</h3><p>把设施工作台和设备台账、合同表放进 WorkBuddy 团队空间，团队打开就能看全局状态。</p></div>
-    <div class="step rv"><div class="n">02</div><h3>表格自动抓取</h3><p>工作台自动读取团队空间的表格，设备状态、工单、合同进度自动汇总，不用手动导。</p></div>
-    <div class="step rv"><div class="n">03</div><h3>跟进与处理</h3><p>源表一改，设备状态和待办跟着更新。新建工单、更新合同节点，团队跟进到处理完成。</p></div>
-  </div>
-</div></section><section class="team"><div class="wrap">
-  <p class="eyebrow rv">数据怎么流转</p>
-  <h2 class="sec rv">表格放一处，<br>全团队跟着更新。</h2>
-  <p class="lead rv">设施台账和合同进度不再靠邮件、微信来回传。放进 WorkBuddy 团队空间作为唯一数据源，工作台直接读取——省掉反复导表，源表一改，设备状态、工单和履约进度一起更新。</p>
-  <div class="flow">
-    <div class="flow-step rv"><div class="fi">01 / 源表</div><h4>表格进团队空间</h4><p>设备台账、工单表、合同表放进 WorkBuddy 团队空间，统一存放、按权限共享。</p></div>
-    <div class="flow-arrow rv">→</div>
-    <div class="flow-step rv"><div class="fi">02 / 读取</div><h4>工作台自动读取</h4><p>工作台关联团队空间的表格，按字段自动归集，无需手动导入上传。</p></div>
-    <div class="flow-arrow rv">→</div>
-    <div class="flow-step rv"><div class="fi">03 / 计算</div><h4>状态与进度汇总</h4><p>设备状态、工单量、合同履约进度自动算出，超期节点单独标出。</p></div>
-    <div class="flow-arrow rv">→</div>
-    <div class="flow-step rv"><div class="fi">04 / 协同</div><h4>团队看到同一版</h4><p>源表更新后全员同步，谁处理到哪一步一处看清，不再有对不上的多个版本。</p></div>
-  </div>
-  <div class="pgrid">
-    <div class="rv"><h3>一次放入，长期自动</h3><p>源表放在团队空间一次配置好，工作台长期读取。设备或合同更新后，团队直接看到新结果。</p></div>
-    <div class="rv"><h3>改一处，全链路更新</h3><p>设备状态、工单、合同节点变了，总览、待办和履约进度一起重算，避免手工改一处漏一处。</p></div>
-    <div class="rv"><h3>同一数据源，权限可控</h3><p>表格和工作台都在团队空间，按权限访问、操作留痕。团队共用一份最新数据。</p></div>
+    <div class="step rv"><span class="badge">01 / 自己用</span><h3>打开就能管设施</h3><p class="sdesc">在工作台里导入设备台账、工单和合同表，设备状态、待办与履约进度一屏汇总，结果留在自己电脑上。</p><ul class="slist"><li>多张 Excel / CSV 一次导入，自动归集</li><li>超期节点单独标出，跟进不漏</li><li>数据自己掌握，换人接手也看得懂</li></ul><div class="sfit">适合 单人管设施、看重数据自己掌握</div></div>
+    <div class="step rv"><span class="badge">02 / 团队</span><h3>台账一处，团队同看一版</h3><p class="sdesc">设施读设备表，清收读欠费台账、停车读收入表，各读各的。台账放团队空间，电脑上的 WorkBuddy 每天定时抓取、自动重算。</p><ul class="slist"><li>三件事三张表，口径清楚不混在一起</li><li>每天早上自动同步一次，报表跟着刷新</li><li>需一台电脑上的 WorkBuddy 保持运行</li></ul><div class="sfit">适合 小团队协作、一天更新一次</div></div>
+    <div class="step feat rv"><span class="badge">03 / 在线 · 推荐</span><h3>发布成应用，链接发下去</h3><p class="sdesc">每人 10 个免费名额，清收、设施、停车一键发布成在线应用，云端全自动抓取表格、持续运行；链接发下去，打开就能用。</p><ul class="slist"><li>全自动抓取，数据实时同步，不依赖任何电脑开机</li><li>多地团队各看各的表，随时可查</li><li>名额循环使用，替换和删除都不收钱</li></ul><div class="sfit">适合 多地团队、要求随时可用</div></div>
   </div>
 </div></section><section class="cta"><div class="wrap">
   <h2 class="rv">把设施与合同台账，<br>交给它。</h2>

@@ -328,10 +328,23 @@ section[id]{scroll-margin-top:60px}
     apply(next);
   });
   window.addEventListener('message',function(e){
-    if(e.data&&e.data.type==='wb-theme2'&&(e.data.theme==='dark'||e.data.theme==='light')){
-      try{localStorage.setItem('wb-theme2',e.data.theme)}catch(err){}
-      apply(e.data.theme);
+    var d=e.data;
+    if(d&&d.type==='wb-theme2'&&(d.theme==='dark'||d.theme==='light')){
+      try{localStorage.setItem('wb-theme2',d.theme)}catch(err){}
+      apply(d.theme);
     }
+    /* 工作台加载完成报就绪后，把当前主题再推一次，覆盖它的默认值 */
+    if(d&&d.type==='wb-theme2-ready'){
+      var t=root.getAttribute('data-theme')||'light';
+      var f=document.querySelector('iframe.real-iframe');
+      if(f&&f.contentWindow)try{f.contentWindow.postMessage({type:'wb-theme2',theme:t},'*')}catch(err){}
+    }
+  });
+  document.querySelectorAll('iframe.real-iframe').forEach(function(f){
+    f.addEventListener('load',function(){
+      var t=root.getAttribute('data-theme')||'light';
+      try{f.contentWindow.postMessage({type:'wb-theme2',theme:t},'*')}catch(err){}
+    });
   });
   var _lastTheme=null;try{_lastTheme=localStorage.getItem('wb-theme2')}catch(e){}
   setInterval(function(){var v=null;try{v=localStorage.getItem('wb-theme2')}catch(e){}

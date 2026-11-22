@@ -705,6 +705,17 @@ t.sheetStubs=true}if(t.type=="array"){t.type="binary";var a=xk(e,t);t.type="arra
   setInterval(function(){var v=null;try{v=localStorage.getItem('wb-theme2')}catch(e){}
     if(v&&v!==_last){_last=v;apply(v,false)}
   },600);
+  /* 接收外层介绍页发来的主题消息，保证内嵌界面跟随外层浅色/深色 */
+  window.addEventListener('message',function(e){
+    var d=e.data;
+    if(d&&d.type==='wb-theme2'&&(d.theme==='dark'||d.theme==='light')){
+      apply(d.theme,false);
+      try{localStorage.setItem('wb-theme2',d.theme)}catch(err){}
+      _last=d.theme;
+    }
+  });
+  /* 被 iframe 嵌入时，主动向父页请求当前主题 */
+  if(window.parent!==window)try{window.parent.postMessage({type:'wb-theme2-ready'},'*')}catch(e){}
 })();
 /* 侧边栏阶段切换 */
 (function(){

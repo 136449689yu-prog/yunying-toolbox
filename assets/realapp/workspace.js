@@ -354,6 +354,19 @@ function drawAudit() {
         el("strong", "", auditTime(a.created_at)),
         el("span", "act", a.action),
         el("span", "", a.detail ? " · " + a.detail : ""));
+      const del = el("button", "audit-del", "删除");
+      del.type = "button";
+      del.title = "删除这条操作记录";
+      del.onclick = () => {
+        auditCache = auditCache.filter((x) => x.id !== a.id);
+        try {
+          const st = window.__QS_SNAP__ && window.__QS_SNAP__.state;
+          if (st && Array.isArray(st.audit)) st.audit = st.audit.filter((x) => x.id !== a.id);
+        } catch (e) {}
+        drawAudit();
+        msg("已删除 1 条操作记录");
+      };
+      item.append(del);
       box.append(item);
     }
   }

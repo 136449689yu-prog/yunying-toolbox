@@ -105,6 +105,46 @@ tbody tr:hover{background:var(--canvas)}
 /* 话术 */
 .talk{background:var(--canvas);border:1px solid var(--line);border-radius:11px;padding:14px;margin-top:12px;font-size:12px;line-height:1.7;color:var(--ink2)}
 .talk .who{font-size:11px;color:var(--muted);margin-bottom:6px}
+/* 收件箱 · 自动回复 */
+.ib-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.ib-head h2{font-size:19px;font-weight:600;letter-spacing:-.4px}
+.ib-head .sub{font-size:11px;color:var(--muted);margin-top:4px}
+.ib-refresh{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:8px 14px;font:inherit;font-size:12px;color:var(--ink2);cursor:pointer;white-space:nowrap}
+.ib-refresh:hover{background:var(--canvas)}
+.ar-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:22px}
+.ar-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.ar-top h3{font-size:15px;font-weight:600;letter-spacing:-.3px}
+.ar-state{font-size:11px;color:var(--muted)}
+.ar-check{display:inline-flex;align-items:center;gap:9px;font-size:13px;color:var(--ink2);cursor:pointer}
+.ar-check input{width:16px;height:16px;accent-color:var(--blue);cursor:pointer}
+.ar-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:15px 0;margin-top:6px;border-top:1px solid var(--line)}
+.ar-num,.ar-sel{display:inline-flex;align-items:center;gap:9px;font-size:13px;color:var(--ink2)}
+.ar-num input{width:76px;padding:8px 10px;border:1px solid var(--line2);border-radius:8px;background:var(--canvas);color:var(--ink);font:inherit;font-size:13px;outline:none}
+.ar-num input:focus{border-color:var(--blue)}
+.ar-sel select{padding:8px 30px 8px 12px;border:1px solid var(--line2);border-radius:8px;background:var(--canvas);color:var(--ink);font:inherit;font-size:13px;outline:none;cursor:pointer}
+.ar-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn-primary{background:var(--blue);color:#fff;border:0;border-radius:9px;padding:9px 16px;font:inherit;font-size:12px;font-weight:500;cursor:pointer}
+.btn-primary:hover{opacity:.9}
+.ar-run-state{font-size:11px;color:var(--muted)}
+.ar-note{font-size:11px;color:var(--tertiary);line-height:1.6;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.pend-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.pend-head h3{font-size:15px;font-weight:600}
+.pend-head .sub{font-size:12px;color:var(--muted)}
+.pend-item{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);margin-bottom:14px}
+.pend-u{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex:none}
+.pend-name{font-size:13px;font-weight:600;color:var(--ink)}
+.pend-meta{font-size:11px;color:var(--muted);margin-top:1px}
+.pend-group{margin-left:auto;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--canvas)}
+.quote{background:var(--canvas);border-left:3px solid var(--line2);border-radius:0 8px 8px 0;padding:11px 13px;font-size:12px;color:var(--ink2);line-height:1.6;margin-bottom:11px}
+.talk-input{width:100%;min-height:44px;resize:vertical;font:inherit;font-size:12px;line-height:1.6;padding:11px 13px;border:1px solid var(--line2);border-radius:10px;background:var(--canvas);color:var(--ink);outline:none}
+.talk-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.talk-input::placeholder{color:var(--tertiary)}
+.pend-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.pb{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 13px;font:inherit;font-size:12px;color:var(--ink2);cursor:pointer}
+.pb:hover{background:var(--canvas)}
+.pb.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.pb.primary:hover{opacity:.9}
 /* 引导 */
 .step{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
 .step:last-child{border:0}
@@ -127,7 +167,7 @@ tbody tr:hover{background:var(--canvas)}
   <nav class="nav">
     <a href="#s1" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18 9.5l-4.2 1.9L12 16l-1.8-4.6L6 9.5l4.2-1.9L12 3Z"/></svg>今日发现<span class="badge">107</span></a>
     <a href="#s2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="m17 11 2 2 4-4"/></svg>全部客户<span class="badge">172</span></a>
-    <a href="#s3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5 5h14l3 7v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6l3-7Z"/></svg>收件箱<span class="badge" id="inboxBadge">0</span></a>
+    <a href="#s3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5 5h14l3 7v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6l3-7Z"/></svg>收件箱<span class="badge" id="inboxBadge">107</span></a>
     <a href="#s4"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 .2c0 1.8-2.5 2.3-2.5 3.8"/><path d="M12 17h.01"/></svg>入门</a>
   </nav>
   <div class="side-foot">
@@ -196,10 +236,25 @@ tbody tr:hover{background:var(--canvas)}
 
     <!-- 收件箱 -->
     <section id="s3" hidden>
-      <div class="card">
-        <div class="sec-head"><div><h2>收件箱</h2><div class="sub">已生成并发送的话术</div></div></div>
-        <div id="inbox"><div class="empty" style="text-align:center;color:var(--muted);padding:44px 0">还没有发送记录。去「全部客户」点一条客户，生成话术试试。</div></div>
+      <div class="ib-head"><div><h2>收件箱</h2><div class="sub">给客户写回复话术 · 复制或打开私信 · 不发一条你没确认的消息</div></div><button class="ib-refresh" id="ibRefresh">刷新</button></div>
+
+      <div class="ar-card">
+        <div class="ar-top"><h3>自动回复</h3><span class="ar-state" id="arState">未开启 · 今天已发 0/无限 条</span></div>
+        <label class="ar-check"><input type="checkbox" id="arEnable">开启自动回复</label>
+        <div class="ar-row">
+          <span class="ar-num">每天最多 <input type="number" id="arLimit" value="50" min="1"> 条</span>
+          <span class="ar-sel">只回复 <select id="arTier"><option>仅 A 级</option><option>A / B 级</option></select></span>
+        </div>
+        <div class="ar-actions">
+          <button class="btn-primary" id="arSave">保存设置</button>
+          <button class="pb" id="arStart">启动自动回复</button>
+          <span class="ar-run-state" id="arRunState">未运行</span>
+        </div>
+        <p class="ar-note">自动回复只在你明确开启后生效；可随时关掉。当前只支持小红书站内评论回复，其他平台生成话术后需你手动发送。</p>
       </div>
+
+      <div class="pend-head"><h3>待回复 <span id="pendCount">107</span> 位 · A/B 级优先</h3><span class="sub">按意向优先级排队</span></div>
+      <div id="pendingList"></div>
     </section>
 
     <!-- 入门 -->
@@ -229,7 +284,7 @@ tbody tr:hover{background:var(--canvas)}
   $('#tLight').onclick=function(){theme('light')};$('#tDark').onclick=function(){theme('dark')};
 
   /* 菜单切换 */
-  var TITLES={'#s1':['让每条评论都变成客户','dot'],'#s2':['全部客户','按租赁意向分档，先看想租的 A 档'],'#s3':['收件箱','已生成并发送的话术'],'#s4':['入门','三步上手']};
+  var TITLES={'#s1':['让每条评论都变成客户','dot'],'#s2':['全部客户','按租赁意向分档，先看想租的 A 档'],'#s3':['收件箱','给客户写回复话术 · 复制或打开私信'],'#s4':['入门','三步上手']};
   function go(id){$$('.nav a').forEach(function(a){a.classList.toggle('active',a.getAttribute('href')===id)});$$('.content section').forEach(function(s){s.hidden=(s.id!==id.slice(1))});window.scrollTo({top:0,behavior:reduce?'auto':'smooth'})}
   window.go=go;
   $$('.nav a').forEach(function(a){a.onclick=function(e){e.preventDefault();go(a.getAttribute('href'))}});
@@ -313,27 +368,63 @@ tbody tr:hover{background:var(--canvas)}
   /* 筛选 */
   $$('.tab').forEach(function(t){t.onclick=function(){$$('.tab').forEach(function(x){x.classList.remove('on')});t.classList.add('on');filter=t.dataset.f;renderCust()}});
 
-  /* 生成话术 → 发送 → 收件箱 */
-  var inbox=[];
+  /* 收件箱 · 待回复 */
+  var pendNames=['四川铺哥','圣地找铺的玲姐','想开奶茶的小周','广州看铺人','老陈要开店','白云区找门面'];
+  var pending=ALL.filter(function(c){return c.tier==='A'||c.tier==='B'}).slice(0,6).map(function(c,i){
+    return {name:pendNames[i%pendNames.length],tier:c.tier,platform:c.platform,comment:c.comment,talk:''};
+  });
+  function replyText(p){
+    return '你好，看到你在'+p.platform+'留言「'+p.comment+'」。我们在广州白云区圣地大厦有商铺出租，面积户型都有，方便的话发你一份铺位资料和租金表，你看看有没有合适的？';
+  }
+  function renderPending(){
+    $('#pendingList').innerHTML=pending.map(function(p,i){
+      return '<div class="pend-item">'
+        +'<div class="pend-u"><span class="avatar">'+esc(p.name.charAt(0))+'</span><div><div class="pend-name">'+esc(p.name)+'</div><div class="pend-meta">'+tierTag(p.tier)+' · '+p.platform+'</div></div><span class="pend-group">未分组 ▾</span></div>'
+        +'<div class="quote">'+esc(p.comment)+'</div>'
+        +'<textarea class="talk-input" data-i="'+i+'" placeholder="点「写话术」生成回复">'+esc(p.talk)+'</textarea>'
+        +'<div class="pend-btns"><button class="pb primary" data-act="write" data-i="'+i+'">写话术</button><button class="pb" data-act="copy" data-i="'+i+'">复制</button><button class="pb" data-act="contact" data-i="'+i+'">去联系</button><button class="pb" data-act="done" data-i="'+i+'">标已回复</button></div>'
+        +'</div>';
+    }).join('')||'<div class="empty" style="text-align:center;color:var(--muted);padding:44px 0">待回复都处理完了</div>';
+  }
+  function copyText(t){
+    function fallback(){var ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('话术已复制')}catch(e){toast('请手动复制文本框内容')}document.body.removeChild(ta)}
+    try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast('话术已复制')},fallback)}else fallback()}catch(e){fallback()}
+  }
+  $('#pendingList').onclick=function(e){
+    var b=e.target.closest('button[data-act]'); if(!b)return;
+    var i=+b.dataset.i,act=b.dataset.act,p=pending[i]; if(!p)return;
+    if(act==='write'){p.talk=replyText(p);renderPending();toast('回复话术已生成，可修改后复制')}
+    else if(act==='copy'){var v=p.talk||$('.talk-input[data-i="'+i+'"]').value;if(!v){toast('请先点「写话术」生成回复');return}copyText(v)}
+    else if(act==='contact'){toast('已打开 '+p.platform+' 私信（演示）')}
+    else if(act==='done'){pending.splice(i,1);var n=Math.max(0,+$('#pendCount').textContent-1);$('#pendCount').textContent=n;$('#inboxBadge').textContent=n;renderPending();toast('已标记为回复')}
+  };
+  $('#pendingList').oninput=function(e){if(e.target.classList.contains('talk-input')){var i=+e.target.dataset.i;if(pending[i])pending[i].talk=e.target.value}};
+  renderPending();
+
+  /* 自动回复设置 */
+  $('#arEnable').onchange=function(){$('#arState').textContent=(this.checked?'已开启':'未开启')+' · 今天已发 0/无限 条'};
+  $('#arSave').onclick=function(){toast('自动回复设置已保存')};
+  $('#arStart').onclick=function(){
+    if(!$('#arEnable').checked){toast('请先勾选「开启自动回复」');return}
+    var r=$('#arRunState');
+    if(r.textContent==='运行中'){r.textContent='未运行';this.textContent='启动自动回复';toast('自动回复已停止')}
+    else{r.textContent='运行中';this.textContent='停止自动回复';toast('自动回复已启动')}
+  };
+  $('#ibRefresh').onclick=function(){renderPending();toast('收件箱已刷新')};
+
+  /* 全部客户 → 生成话术 → 加入待回复 */
   $('#custBody').onclick=function(e){
     var tr=e.target.closest('tr[data-i]'); if(!tr)return;
     var c=visible[+tr.dataset.i];
-    var talk='你好，看到你在' + c.platform + '上留言「' + c.comment + '」。我们在广州白云区圣地大厦有商铺出租，面积户型都有，方便的话发你一份铺位资料和租金表，你看看有没有合适的？';
-    $('#talkBox').innerHTML='<div class="talk"><div class="who">给 '+esc(c.name)+' · '+c.platform+' · '+tierTag(c.tier)+' 的话术</div>'+esc(talk)+'<div class="row-end"><span class="sub">按评论自动生成，可按需修改后发送</span><button class="btn blue" id="sendBtn">一键发送</button></div></div>';
+    var talk=replyText({platform:c.platform,comment:c.comment});
+    $('#talkBox').innerHTML='<div class="talk"><div class="who">给 '+esc(c.name)+' · '+c.platform+' · '+tierTag(c.tier)+' 的话术</div>'+esc(talk)+'<div class="row-end"><span class="sub">按评论自动生成，可按需修改后发送</span><button class="btn blue" id="sendBtn">加入待回复</button></div></div>';
     $('#talkBox').scrollIntoView({behavior:reduce?'auto':'smooth',block:'nearest'});
     $('#sendBtn').onclick=function(){
-      inbox.unshift({c:c,text:talk,time:'刚刚'});
-      $('#inboxBadge').textContent=inbox.length;
-      renderInbox();
-      $('#talkBox').innerHTML='';
-      toast('已发送，联系人和来源已记入收件箱');
+      pending.unshift({name:pendNames[pending.length%pendNames.length],tier:c.tier,platform:c.platform,comment:c.comment,talk:talk});
+      var n=+$('#pendCount').textContent+1;$('#pendCount').textContent=n;$('#inboxBadge').textContent=n;
+      renderPending();$('#talkBox').innerHTML='';toast('话术已加入收件箱待回复');
     };
   };
-  function renderInbox(){
-    $('#inbox').innerHTML=inbox.map(function(x){
-      return '<div class="talk"><div class="who">'+esc(x.c.name)+' · '+x.c.platform+' · '+x.time+' · '+tierTag(x.c.tier)+'</div>'+esc(x.text)+'</div>'
-    }).join('')||'<div class="empty" style="text-align:center;color:var(--muted);padding:44px 0">还没有发送记录。去「全部客户」点一条客户，生成话术试试。</div>';
-  }
 
   /* 选帖数 / 天数 / 平台 */
   $$('.chip[data-n]').forEach(function(c){c.onclick=function(){$$('.chip[data-n]').forEach(function(x){x.classList.remove('on')});c.classList.add('on')}});

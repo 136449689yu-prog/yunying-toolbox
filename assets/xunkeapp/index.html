@@ -12,6 +12,7 @@
   --a:#ff3b30;--b:#ff9f0a;--c:#8e8e93;
   --shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.03);
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+  --side-w:210px;
 }
 html[data-theme="dark"]{
   --canvas:#111214;--card:#1c1d20;--side:#17181a;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
@@ -21,10 +22,10 @@ html[data-theme="dark"]{
 }
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
-body{font-family:var(--font);background:var(--canvas);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--canvas);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 .app{display:flex;min-height:100vh}
 /* 侧栏 */
-.side{position:fixed;inset:0 auto 0 0;width:196px;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:20px 12px;z-index:5}
+.side{position:fixed;inset:0 auto 0 0;width:var(--side-w);background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:20px 12px;z-index:5}
 .brand{display:flex;align-items:center;gap:10px;padding:2px 10px 26px}
 .brand .mk{width:30px;height:30px;border-radius:9px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex:none}
 .brand .mk svg{width:17px;height:17px}
@@ -43,13 +44,13 @@ body{font-family:var(--font);background:var(--canvas);color:var(--ink);font-size
 .theme-sw button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06)}
 .setting{font-size:11px;color:var(--tertiary);display:flex;align-items:center;gap:5px}
 /* 主区 */
-.main{margin-left:196px;flex:1;min-width:0}
+.main{margin-left:var(--side-w);flex:1;min-width:0}
 .top{background:var(--card);border-bottom:1px solid var(--line);padding:18px 28px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:4}
-.top h1{font-size:19px;font-weight:600;letter-spacing:-.4px}
-.top .meta{font-size:11px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.top h1{font-size:21px;font-weight:600;letter-spacing:-.4px}
+.top .meta{font-size:12px;color:var(--muted);margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .top .meta .dot{width:6px;height:6px;border-radius:50%;background:var(--b)}
 .top .meta b{font-weight:600;color:var(--ink2)}
-.top-btn{background:var(--blue);color:#fff;border:0;border-radius:10px;padding:10px 18px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:opacity .2s,transform .2s}
+.top-btn{background:var(--blue);color:#fff;border:0;border-radius:10px;padding:11px 20px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;transition:opacity .2s,transform .2s}
 .top-btn:hover{opacity:.9}
 .top-btn:active{transform:scale(.97)}
 .top-btn:disabled{opacity:.5;cursor:default}
@@ -94,9 +95,9 @@ body{font-family:var(--font);background:var(--canvas);color:var(--ink);font-size
 .tier.B{color:var(--b);background:rgba(255,159,10,.12)}
 .tier.C{color:var(--c);background:rgba(142,142,147,.12)}
 .tier i{width:6px;height:6px;border-radius:50%;background:currentColor}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th{text-align:left;color:var(--tertiary);font-weight:400;font-size:11px;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
-td{padding:11px 10px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--tertiary);font-weight:400;font-size:12px;padding:12px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:16px 12px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:middle}
 tbody tr{cursor:pointer;transition:background .2s}
 tbody tr:hover{background:var(--canvas)}
 .plat-tag{font-size:10px;color:var(--muted);background:var(--canvas);border:1px solid var(--line);padding:2px 7px;border-radius:5px}
@@ -145,6 +146,20 @@ tbody tr:hover{background:var(--canvas)}
 .pb:hover{background:var(--canvas)}
 .pb.primary{background:var(--blue);border-color:var(--blue);color:#fff}
 .pb.primary:hover{opacity:.9}
+/* 设置弹窗 */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.32);display:flex;align-items:center;justify-content:center;z-index:40;padding:20px}
+.dialog{background:var(--card);border:1px solid var(--line);border-radius:18px;width:min(440px,100%);box-shadow:0 20px 60px rgba(0,0,0,.18);overflow:hidden}
+.dialog-h{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--line)}
+.dialog-h h3{font-size:16px;font-weight:600;letter-spacing:-.3px}
+.dialog-x{border:0;background:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer;padding:0 4px}
+.dialog-b{padding:8px 24px 20px}
+.set-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:15px 0;border-bottom:1px solid var(--line)}
+.set-row:last-child{border:0}
+.set-label{font-size:13px;color:var(--ink2)}
+.set-label .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.set-ctrl select,.set-ctrl input[type=number]{border:1px solid var(--line2);border-radius:8px;background:var(--canvas);color:var(--ink);font:inherit;font-size:13px;padding:8px 10px;outline:none}
+.set-ctrl input[type=number]{width:80px}
+.set-ctrl select:focus,.set-ctrl input:focus{border-color:var(--blue)}
 /* 引导 */
 .step{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
 .step:last-child{border:0}
@@ -172,7 +187,7 @@ tbody tr:hover{background:var(--canvas)}
   </nav>
   <div class="side-foot">
     <div class="theme-sw"><button id="tLight" class="on">浅色</button><button id="tDark">深色</button></div>
-    <span class="setting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.01a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>设置</span>
+    <button class="setting" id="setBtn" title="打开设置" style="border:0;background:none;cursor:pointer;font:inherit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.01a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>设置</button>
   </div>
 </aside>
 
@@ -181,7 +196,7 @@ tbody tr:hover{background:var(--canvas)}
     <div><h1 id="topTitle">让每条评论都变成客户</h1>
       <div class="meta" id="topMeta"><span class="dot"></span><b>A 13</b> · <b>B 94</b> · <b>C 65</b> · 172 位还没联系 · 11 月 19 日 · 星期四</div>
     </div>
-    <button class="top-btn" id="topRun">开始找客户</button>
+    <button class="top-btn" id="topRun">再找一次</button>
   </header>
 
   <div class="content">
@@ -270,6 +285,20 @@ tbody tr:hover{background:var(--canvas)}
   </div>
 </div>
 </div>
+
+<div class="mask" id="setMask" hidden>
+  <div class="dialog" role="dialog" aria-label="设置">
+    <div class="dialog-h"><h3>设置</h3><button class="dialog-x" id="setClose" aria-label="关闭">×</button></div>
+    <div class="dialog-b">
+      <div class="set-row"><div class="set-label">默认翻帖数<div class="sub">每次找客户每个平台翻多少帖</div></div><div class="set-ctrl"><select id="setPosts"><option>5 帖</option><option>10 帖</option><option>20 帖</option><option selected>50 帖</option></select></div></div>
+      <div class="set-row"><div class="set-label">只看几天内<div class="sub">超出天数的评论不入库</div></div><div class="set-ctrl"><select id="setDays"><option>3 天</option><option selected>7 天</option><option>15 天</option><option>30 天</option></select></div></div>
+      <div class="set-row"><div class="set-label">自动回复每天上限<div class="sub">开启自动回复后每天最多回多少条</div></div><div class="set-ctrl"><input type="number" id="setLimit" value="50" min="1"></div></div>
+      <div class="set-row"><div class="set-label">界面主题<div class="sub">跟随本机显示，也可手动切换</div></div><div class="set-ctrl"><select id="setTheme"><option value="light">浅色</option><option value="dark">深色</option></select></div></div>
+    </div>
+    <div class="row-end" style="padding:0 24px 22px;margin:0"><span class="sub">本页为演示，设置仅当前页面生效</span><button class="btn-primary" id="setSave">保存</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -411,6 +440,21 @@ tbody tr:hover{background:var(--canvas)}
     else{r.textContent='运行中';this.textContent='停止自动回复';toast('自动回复已启动')}
   };
   $('#ibRefresh').onclick=function(){renderPending();toast('收件箱已刷新')};
+
+  /* 设置弹窗 */
+  function openSet(){var t=document.documentElement.getAttribute('data-theme')==='dark'?'dark':'light';$('#setTheme').value=t;$('#setMask').hidden=false}
+  function closeSet(){$('#setMask').hidden=true}
+  $('#setBtn').onclick=openSet;
+  $('#setClose').onclick=closeSet;
+  $('#setMask').onclick=function(e){if(e.target===$('#setMask'))closeSet()};
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('#setMask').hidden)closeSet()});
+  $('#setSave').onclick=function(){
+    var lim=$('#setLimit').value;
+    if(!lim||+lim<1){toast('每天上限至少 1 条');return}
+    $('#arLimit').value=lim;
+    var t=$('#setTheme').value;theme(t);
+    closeSet();toast('设置已保存');
+  };
 
   /* 全部客户 → 生成话术 → 加入待回复 */
   $('#custBody').onclick=function(e){
